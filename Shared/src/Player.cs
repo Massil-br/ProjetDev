@@ -3,7 +3,7 @@ using SFML.System;
 using SFML.Window;
 
 
-namespace src
+namespace Shared
 {
     public class Player
     {

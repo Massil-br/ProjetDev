@@ -1,7 +1,7 @@
 using SFML.Graphics;
 using SFML.System;
 
-namespace src
+namespace Shared
 {
     public class Map
     {

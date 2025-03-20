@@ -2,6 +2,7 @@ using System;
 using SFML.Graphics;
 using SFML.Window;
 using src;
+using Shared;
 
 namespace src
 {
@@ -37,5 +38,13 @@ namespace src
 
             return State.Playing;
         }
+        
+
+        // public static State RunMultiplayerLoop(){
+        //     Ip serverIp = new ("127.0.0.1", 8994);
+        //     Client client = new (serverIp);
+        // }
+
+
     }
 }
