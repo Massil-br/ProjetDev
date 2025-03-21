@@ -48,8 +48,8 @@ namespace Shared
             float scaleX = 32f / sprite.TextureRect.Width;
             float scaleY = 32f / sprite.TextureRect.Height;
             sprite.Scale = new Vector2f(scaleX, scaleY);
-            IdleSpriteList = new Texture[]
-            {
+            IdleSpriteList =
+            [
                 new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_000.png"),
                 new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_001.png"),
                 new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_002.png"),
@@ -62,10 +62,10 @@ namespace Shared
                 new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_009.png"),
                 new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_010.png"),
                 new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_011.png"),
-            };
+            ];
 
-            RunSpriteList = new Texture[]
-            {
+            RunSpriteList =
+            [
                 new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_000.png"),
                 new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_001.png"),
                 new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_002.png"),
@@ -76,26 +76,26 @@ namespace Shared
                 new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_007.png"),
                 new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_008.png"),
                 new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_009.png"),
-            };
+            ];
 
-            JumpSpriteList = new Texture[]
-            {
+            JumpSpriteList =
+            [
                 new Texture("src/assets/Player/04-Jump/PS_BALD GUY_JumpUp_000.png"),
                 new Texture("src/assets/Player/04-Jump/PS_BALD GUY_JumpFall_000.png"),
-            };
+            ];
 
-            HurtSpriteList = new Texture[]
-            {
+            HurtSpriteList =
+            [
                 new Texture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_000.png"),
                 new Texture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_001.png"),
                 new Texture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_002.png"),
                 new Texture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_003.png"),
                 new Texture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_004.png"),
                 new Texture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_005.png"),
-            };
+            ];
 
-            DeadSpriteList = new Texture[]
-            {
+            DeadSpriteList =
+            [
                 new Texture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_000.png"),
                 new Texture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_001.png"),
                 new Texture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_002.png"),
@@ -106,7 +106,7 @@ namespace Shared
                 new Texture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_007.png"),
                 new Texture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_008.png"),
                 new Texture("src/assets/Player/07-Dead/Dead10.png"),
-            };
+            ];
         }
 
         public void Update(RenderWindow window, float deltaTime, Map map)

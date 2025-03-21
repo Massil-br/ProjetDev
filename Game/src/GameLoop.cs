@@ -1,7 +1,5 @@
-using System;
+
 using SFML.Graphics;
-using SFML.Window;
-using src;
 using Shared;
 
 namespace src
@@ -38,6 +36,9 @@ namespace src
 
             return State.Playing;
         }
+
+        
+        
         
 
         // public static State RunMultiplayerLoop(){
