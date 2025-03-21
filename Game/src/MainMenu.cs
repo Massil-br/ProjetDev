@@ -17,22 +17,31 @@ namespace src
 
         public static float ArrowSelectionTimer = 0f;
 
+        private const float TitlePositionY = 0.25f;
+        private const float SoloPositionY = 0.5f;
+        private const float MultiplayerPositionY = 0.6f;
+        private const float QuitPositionY = 0.7f;
+
         public static void InitMainMenu(RenderWindow window, Camera camera)
         {
             FloatRect viewRect = camera.GetView().Viewport;
-            float windowWidth = window.Size.X;
-            float windowHeight = window.Size.Y;
+            float viewWidth = camera.GetView().Size.X;
+            float viewHeight = camera.GetView().Size.Y;
 
-            titleText.Position = new Vector2f(windowWidth / 2 - titleText.GetGlobalBounds().Width / 2, windowHeight / 4);
+            // Positionner et colorer le texte du titre
+            titleText.Position = new Vector2f(viewWidth / 2 - titleText.GetGlobalBounds().Width / 2, viewHeight * TitlePositionY);
             titleText.FillColor = Color.White;
 
-            soloText.Position = new Vector2f(windowWidth / 2 - soloText.GetGlobalBounds().Width / 2, windowHeight / 2);
+            // Positionner et colorer le texte de l'option Solo
+            soloText.Position = new Vector2f(viewWidth / 2 - soloText.GetGlobalBounds().Width / 2, viewHeight * SoloPositionY);
             soloText.FillColor = Color.White;
 
-            multiplayerText.Position = new Vector2f(windowWidth / 2 - multiplayerText.GetGlobalBounds().Width / 2, windowHeight / 2 + 100);
+            // Positionner et colorer le texte de l'option Multijoueur
+            multiplayerText.Position = new Vector2f(viewWidth / 2 - multiplayerText.GetGlobalBounds().Width / 2, viewHeight * MultiplayerPositionY);
             multiplayerText.FillColor = Color.White;
 
-            quitText.Position = new Vector2f(windowWidth / 2 - quitText.GetGlobalBounds().Width / 2, windowHeight / 2 + 200);
+            // Positionner et colorer le texte de l'option Quitter
+            quitText.Position = new Vector2f(viewWidth / 2 - quitText.GetGlobalBounds().Width / 2, viewHeight * QuitPositionY);
             quitText.FillColor = Color.White;
 
             MainMenuInitialized = true;

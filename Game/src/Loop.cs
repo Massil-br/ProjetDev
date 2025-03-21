@@ -28,9 +28,9 @@ namespace src
 
         public Loop()
         {
-            window = new RenderWindow(new VideoMode(800, 600), "Ma fenêtre SFML");
+            window = new RenderWindow(new VideoMode(640, 360), "Ma fenêtre SFML");
             clock = new Clock();
-            camera = new Camera(800, 600);
+            camera = new Camera(1280, 720);
 
             window.Closed += (sender, e) => window.Close();
             window.Resized += OnWindowResized;
