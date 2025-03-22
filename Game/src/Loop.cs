@@ -10,7 +10,8 @@ namespace src
         MainMenu,
         Playing,
         Paused,
-        GameOver
+        GameOver,
+        Multiplayer
     }
 
     class Loop
