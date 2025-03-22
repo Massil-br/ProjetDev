@@ -14,6 +14,9 @@ namespace Shared
         private float speed = 100.0f * 1.3f;
         private Sprite sprite;
 
+        private  Font mainFont = new("src/assets/Team 401.ttf");
+        private Text PlayerHealthUi;
+
         private float JumpForce = 300f;
 
         private Texture[] IdleSpriteList;
@@ -59,6 +62,7 @@ namespace Shared
             
             // Définir l'origine au centre du sprite
             sprite.Origin = new Vector2f(sprite.TextureRect.Width / 2, sprite.TextureRect.Height / 2);
+            PlayerHealthUi  =new Text("Main Menu", mainFont, 50);
 
             IdleSpriteList =
             [
@@ -393,6 +397,12 @@ namespace Shared
 
             // Restaurer la position
             sprite.Position = currentPos;
+        }
+
+
+        private void DrawPlayerUi(){
+            PlayerHealthUi.DisplayedString = health + "/" + maxHealth;
+            PlayerHealthUi.Position = new Vector2f(0,0);
         }
 
 

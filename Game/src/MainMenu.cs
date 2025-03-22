@@ -9,39 +9,51 @@ namespace src
     {
         public static bool MainMenuInitialized = false;
         public static Font mainFont = new("src/assets/Team 401.ttf");
-        public static Text titleText = new Text("Main Menu", mainFont, 50);
-        public static Text soloText = new Text("Solo", mainFont, 30);
-        public static Text multiplayerText = new Text("Multiplayer", mainFont, 30);
-        public static Text quitText = new Text("Quit", mainFont, 30);
+        public static Text titleText = new Text("Main Menu", mainFont, 30);
+        public static Text soloText = new Text("Solo", mainFont, 20);
+        public static Text multiplayerText = new Text("Multiplayer", mainFont, 20);
+        public static Text quitText = new Text("Quit", mainFont, 20);
         public static int selectedOption = 0;
 
         public static float ArrowSelectionTimer = 0f;
 
-        private const float TitlePositionY = 0.25f;
-        private const float SoloPositionY = 0.5f;
-        private const float MultiplayerPositionY = 0.6f;
-        private const float QuitPositionY = 0.7f;
+        private const float TitlePositionY = -0.20f;
+        private const float SoloPositionY = 0f;
+        private const float MultiplayerPositionY = 0.15f;
+        private const float QuitPositionY = 0.30f;
 
-        public static void InitMainMenu(RenderWindow window, Camera camera)
+        public static void InitMainMenu(Camera camera)
         {
-            FloatRect viewRect = camera.GetView().Viewport;
             float viewWidth = camera.GetView().Size.X;
             float viewHeight = camera.GetView().Size.Y;
+            Vector2f cameraPosition = camera.GetView().Center;
 
             // Positionner et colorer le texte du titre
-            titleText.Position = new Vector2f(viewWidth / 2 - titleText.GetGlobalBounds().Width / 2, viewHeight * TitlePositionY);
+            titleText.Position = new Vector2f(
+                cameraPosition.X - titleText.GetGlobalBounds().Width / 2,
+                cameraPosition.Y + (viewHeight * TitlePositionY) - titleText.GetGlobalBounds().Height / 2
+            );
             titleText.FillColor = Color.White;
 
             // Positionner et colorer le texte de l'option Solo
-            soloText.Position = new Vector2f(viewWidth / 2 - soloText.GetGlobalBounds().Width / 2, viewHeight * SoloPositionY);
+            soloText.Position = new Vector2f(
+                cameraPosition.X - soloText.GetGlobalBounds().Width / 2,
+                cameraPosition.Y + (viewHeight * SoloPositionY) - soloText.GetGlobalBounds().Height / 2
+            );
             soloText.FillColor = Color.White;
 
             // Positionner et colorer le texte de l'option Multijoueur
-            multiplayerText.Position = new Vector2f(viewWidth / 2 - multiplayerText.GetGlobalBounds().Width / 2, viewHeight * MultiplayerPositionY);
+            multiplayerText.Position = new Vector2f(
+                cameraPosition.X - multiplayerText.GetGlobalBounds().Width / 2,
+                cameraPosition.Y + (viewHeight * MultiplayerPositionY) - multiplayerText.GetGlobalBounds().Height / 2
+            );
             multiplayerText.FillColor = Color.White;
 
             // Positionner et colorer le texte de l'option Quitter
-            quitText.Position = new Vector2f(viewWidth / 2 - quitText.GetGlobalBounds().Width / 2, viewHeight * QuitPositionY);
+            quitText.Position = new Vector2f(
+                cameraPosition.X - quitText.GetGlobalBounds().Width / 2,
+                cameraPosition.Y + (viewHeight * QuitPositionY) - quitText.GetGlobalBounds().Height / 2
+            );
             quitText.FillColor = Color.White;
 
             MainMenuInitialized = true;
@@ -55,10 +67,11 @@ namespace src
             }
             if (!MainMenuInitialized)
             {
-                InitMainMenu(window, camera);
+                InitMainMenu(camera);
                 MainMenuInitialized = true;
             }
 
+            // S'assurer que la vue de la caméra est appliquée avant de dessiner
             window.SetView(camera.GetView());
 
             // Handle input
@@ -91,6 +104,31 @@ namespace src
             soloText.FillColor = selectedOption == 0 ? Color.Red : Color.White;
             multiplayerText.FillColor = selectedOption == 1 ? Color.Red : Color.White;
             quitText.FillColor = selectedOption == 2 ? Color.Red : Color.White;
+
+            // Mettre à jour les positions en fonction de la position de la caméra
+            float viewHeight = camera.GetView().Size.Y;
+            Vector2f cameraPosition = camera.GetView().Center;
+
+            // Mettre à jour les positions des textes
+            titleText.Position = new Vector2f(
+                cameraPosition.X - titleText.GetGlobalBounds().Width / 2,
+                cameraPosition.Y + (viewHeight * TitlePositionY) - titleText.GetGlobalBounds().Height / 2
+            );
+
+            soloText.Position = new Vector2f(
+                cameraPosition.X - soloText.GetGlobalBounds().Width / 2,
+                cameraPosition.Y + (viewHeight * SoloPositionY) - soloText.GetGlobalBounds().Height / 2
+            );
+
+            multiplayerText.Position = new Vector2f(
+                cameraPosition.X - multiplayerText.GetGlobalBounds().Width / 2,
+                cameraPosition.Y + (viewHeight * MultiplayerPositionY) - multiplayerText.GetGlobalBounds().Height / 2
+            );
+
+            quitText.Position = new Vector2f(
+                cameraPosition.X - quitText.GetGlobalBounds().Width / 2,
+                cameraPosition.Y + (viewHeight * QuitPositionY) - quitText.GetGlobalBounds().Height / 2
+            );
 
             // Draw menu
             window.Draw(titleText);

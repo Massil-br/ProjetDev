@@ -25,6 +25,7 @@ namespace src
         private Player? player;
 
         private bool firstEntryToGameLoop = true;
+        private bool firstEntryToMainMenu = true;
         private Map? map;
 
         public Loop()
@@ -54,13 +55,10 @@ namespace src
 
         private void OnWindowResized(object? sender, SizeEventArgs e)
         {   
-            if (currentState == State.Playing){
-                // camera.Resize((float)Math.Floor(e.Width * 0.4), (float)Math.Floor(e.Height *0.4));
-                GameLoop.ResizeCamera(camera);
-            }else{
-                camera.Resize(e.Width, e.Height);
-            }
             
+          
+            GameLoop.ResizeCamera(camera);
+
      
         }
          
@@ -89,11 +87,19 @@ namespace src
                 switch (currentState)
                 {
                     case State.MainMenu:
+                    if (firstEntryToMainMenu){
+                        GameLoop.ResizeCamera(camera);
+                        MainMenu.InitMainMenu(camera);
+                        firstEntryToMainMenu  = false;
+                        firstEntryToGameLoop = true;
+                    }
+                        
                         currentState = MainMenu.RunMainMenu(window, deltaTime, camera);
                         break;
                     case State.Playing:
                         if (firstEntryToGameLoop){
                             firstEntryToGameLoop = false;
+                            firstEntryToMainMenu = true;
                             GameLoop.ResizeCamera(camera);
                         }
                         currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera);
