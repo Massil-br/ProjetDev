@@ -2,6 +2,7 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
+
 namespace Shared
 {
     public class Player
@@ -14,7 +15,7 @@ namespace Shared
         private float speed = 100.0f * 1.3f;
         private Sprite sprite;
 
-        private  Font mainFont = new("src/assets/Team 401.ttf");
+        private  Font mainFont = new("src/assets/Font/Poppins-SemiBold.ttf");
         private Text PlayerHealthUi;
 
         private float JumpForce = 300f;
@@ -45,6 +46,9 @@ namespace Shared
         
         private bool isFacingRight = true; // Nouvelle variable pour suivre la direction
 
+        private const float PlayerHealthUiPositionX = -0.48f;
+        private const float PlayerHealthUiPositionY =-0.48f;
+
         public Player(string texturePath, string name, int maxHealth, int attackDamage)
         {
             this.name = name;
@@ -62,7 +66,7 @@ namespace Shared
             
             // Définir l'origine au centre du sprite
             sprite.Origin = new Vector2f(sprite.TextureRect.Width / 2, sprite.TextureRect.Height / 2);
-            PlayerHealthUi  =new Text("Main Menu", mainFont, 50);
+            PlayerHealthUi  =new Text("", mainFont, 15);
 
             IdleSpriteList =
             [
@@ -127,7 +131,7 @@ namespace Shared
             currentAnimation = IdleSpriteList;
         }
 
-        public void Update(RenderWindow window, float deltaTime, Map map)
+        public void Update(RenderWindow window, float deltaTime, Map map, Camera camera)
         {
             deltaTime = Math.Min(deltaTime, 0.2f);
 
@@ -136,6 +140,7 @@ namespace Shared
             ApplyGravity(deltaTime, map);
             Debug(deltaTime);
             PlayerAnimation(deltaTime);
+            DrawPlayerUi(window, camera);
             Render(window);
         }
 
@@ -151,7 +156,7 @@ namespace Shared
                     newPosition.X - sprite.GetGlobalBounds().Width / 2,
                     newPosition.Y - sprite.GetGlobalBounds().Height / 2,
                     sprite.GetGlobalBounds().Width,
-                    sprite.GetGlobalBounds().Height
+                    sprite.GetGlobalBounds().Height- 4
                 );
 
                 int tileType = map.IsColliding(newBounds);
@@ -217,7 +222,7 @@ namespace Shared
                 newPosition.X - sprite.GetGlobalBounds().Width / 2,
                 newPosition.Y - sprite.GetGlobalBounds().Height / 2,
                 sprite.GetGlobalBounds().Width,
-                sprite.GetGlobalBounds().Height
+                sprite.GetGlobalBounds().Height-4
             );
 
             // Vérifier les collisions horizontales
@@ -400,13 +405,22 @@ namespace Shared
         }
 
 
-        private void DrawPlayerUi(){
-            PlayerHealthUi.DisplayedString = health + "/" + maxHealth;
-            PlayerHealthUi.Position = new Vector2f(0,0);
+        private void DrawPlayerUi(RenderWindow window, Camera camera){
+            SetPlayerHealthUi(camera);
+
+            window.Draw(PlayerHealthUi);
         }
 
-
-
+        private void SetPlayerHealthUi(Camera camera){
+            PlayerHealthUi.DisplayedString = health + "/" + maxHealth +"HP";
+            Vector2f cameraPosition = camera.GetView().Center;
+            PlayerHealthUi.Position = new Vector2f(
+                cameraPosition.X +(Camera.ViewWidth * PlayerHealthUiPositionX),
+                cameraPosition.Y + (Camera.ViewHeight * PlayerHealthUiPositionY)
+                );
+            PlayerHealthUi.FillColor = Color.White;
+        }
         
+  
     }
 }

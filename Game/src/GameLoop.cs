@@ -29,7 +29,7 @@ namespace src
         {   
             
             
-            player.Update(window, deltaTime, map);
+            player.Update(window, deltaTime, map, camera);
             camera.Update(player.GetSprite().Position);
             map.Draw(window);
             window.SetView(camera.GetView());

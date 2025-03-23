@@ -1,10 +1,13 @@
 using SFML.Graphics;
 using SFML.System;
 
-namespace src
+namespace Shared
 {
     public class Camera
-    {
+    {   
+        public static float ViewWidth;
+        public static float ViewHeight;
+        public static Vector2f CameraPosition;
         private View view;
 
         public Camera(float width, float height)

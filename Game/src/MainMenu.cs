@@ -2,6 +2,7 @@ using System;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using Shared;
 
 namespace src
 {
@@ -15,6 +16,10 @@ namespace src
         public static Text quitText = new Text("Quit", mainFont, 20);
         public static int selectedOption = 0;
 
+        
+
+        
+
         public static float ArrowSelectionTimer = 0f;
 
         private const float TitlePositionY = -0.20f;
@@ -24,35 +29,35 @@ namespace src
 
         public static void InitMainMenu(Camera camera)
         {
-            float viewWidth = camera.GetView().Size.X;
-            float viewHeight = camera.GetView().Size.Y;
+            Camera.ViewWidth = camera.GetWidth();
+            Camera.ViewHeight = camera.GetHeight();
             Vector2f cameraPosition = camera.GetView().Center;
 
             // Positionner et colorer le texte du titre
             titleText.Position = new Vector2f(
                 cameraPosition.X - titleText.GetGlobalBounds().Width / 2,
-                cameraPosition.Y + (viewHeight * TitlePositionY) - titleText.GetGlobalBounds().Height / 2
+                cameraPosition.Y + (Camera.ViewHeight * TitlePositionY) - titleText.GetGlobalBounds().Height / 2
             );
             titleText.FillColor = Color.White;
 
             // Positionner et colorer le texte de l'option Solo
             soloText.Position = new Vector2f(
                 cameraPosition.X - soloText.GetGlobalBounds().Width / 2,
-                cameraPosition.Y + (viewHeight * SoloPositionY) - soloText.GetGlobalBounds().Height / 2
+                cameraPosition.Y + (Camera.ViewHeight * SoloPositionY) - soloText.GetGlobalBounds().Height / 2
             );
             soloText.FillColor = Color.White;
 
             // Positionner et colorer le texte de l'option Multijoueur
             multiplayerText.Position = new Vector2f(
                 cameraPosition.X - multiplayerText.GetGlobalBounds().Width / 2,
-                cameraPosition.Y + (viewHeight * MultiplayerPositionY) - multiplayerText.GetGlobalBounds().Height / 2
+                cameraPosition.Y + (Camera.ViewHeight * MultiplayerPositionY) - multiplayerText.GetGlobalBounds().Height / 2
             );
             multiplayerText.FillColor = Color.White;
 
             // Positionner et colorer le texte de l'option Quitter
             quitText.Position = new Vector2f(
                 cameraPosition.X - quitText.GetGlobalBounds().Width / 2,
-                cameraPosition.Y + (viewHeight * QuitPositionY) - quitText.GetGlobalBounds().Height / 2
+                cameraPosition.Y + (Camera.ViewHeight * QuitPositionY) - quitText.GetGlobalBounds().Height / 2
             );
             quitText.FillColor = Color.White;
 

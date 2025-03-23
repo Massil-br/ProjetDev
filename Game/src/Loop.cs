@@ -55,10 +55,9 @@ namespace src
 
         private void OnWindowResized(object? sender, SizeEventArgs e)
         {   
-            
-          
             GameLoop.ResizeCamera(camera);
-
+            Camera.ViewHeight = camera.GetHeight();
+            Camera.ViewWidth = camera.GetWidth();
      
         }
          
