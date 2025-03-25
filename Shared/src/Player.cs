@@ -15,7 +15,9 @@ namespace Shared
         private float speed = 100.0f * 1.3f;
         private Sprite sprite;
 
-        private  Font mainFont = new("src/assets/Font/Poppins-SemiBold.ttf");
+        private Font mainFont = new("src/assets/Font/Poppins-ExtraBold.ttf");
+        private uint baseFontSize = 30;
+        private uint FontSize = 30;
         private Text PlayerHealthUi;
 
         private float JumpForce = 300f;
@@ -49,6 +51,14 @@ namespace Shared
         private const float PlayerHealthUiPositionX = -0.48f;
         private const float PlayerHealthUiPositionY =-0.48f;
 
+        private List<Projectile> projectiles = new();
+        private float shootCooldown = 1f; // Temps entre chaque tir
+        private float shootTimer = 0f;
+
+        Text fpsText = new();
+        Text playerPosition = new();
+        Text playerVerticalSpeed = new();
+
         public Player(string texturePath, string name, int maxHealth, int attackDamage)
         {
             this.name = name;
@@ -57,7 +67,7 @@ namespace Shared
             this.isAlive = true;
 
             this.attackDamage = attackDamage;
-            texture = new(texturePath);
+            texture = TextureManager.GetTexture(texturePath);
             sprite = new Sprite(texture);
             sprite.Position = new Vector2f(0, -1); // Spawn au point (0,0)
             float scaleX = 32f / sprite.TextureRect.Width;
@@ -66,66 +76,69 @@ namespace Shared
             
             // Définir l'origine au centre du sprite
             sprite.Origin = new Vector2f(sprite.TextureRect.Width / 2, sprite.TextureRect.Height / 2);
-            PlayerHealthUi  =new Text("", mainFont, 15);
+            PlayerHealthUi = new Text("", mainFont, FontSize);
+            fpsText = new("FPS: " + frameCount * 2, mainFont, FontSize);
+            playerPosition = new("Player position: " + sprite.Position.X + ", " + sprite.Position.Y, mainFont, FontSize);
+            playerVerticalSpeed = new("Player Vertical Speed: " + verticalSpeed, mainFont, FontSize);
 
             IdleSpriteList =
             [
-                new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_000.png"),
-                new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_001.png"),
-                new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_002.png"),
-                new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_003.png"),
-                new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_004.png"),
-                new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_005.png"),
-                new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_006.png"),
-                new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_007.png"),
-                new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_008.png"),
-                new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_009.png"),
-                new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_010.png"),
-                new Texture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_011.png"),
+                TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_000.png"),
+                TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_001.png"),
+                TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_002.png"),
+                TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_003.png"),
+                TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_004.png"),
+                TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_005.png"),
+                TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_006.png"),
+                TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_007.png"),
+                TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_008.png"),
+                TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_009.png"),
+                TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_010.png"),
+                TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_011.png"),
             ];
 
             RunSpriteList =
             [
-                new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_000.png"),
-                new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_001.png"),
-                new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_002.png"),
-                new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_003.png"),
-                new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_004.png"),
-                new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_005.png"),
-                new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_006.png"),
-                new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_007.png"),
-                new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_008.png"),
-                new Texture("src/assets/Player/02-Run/PS_BALD GUY_Run_009.png"),
+                TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_000.png"),
+                TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_001.png"),
+                TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_002.png"),
+                TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_003.png"),
+                TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_004.png"),
+                TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_005.png"),
+                TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_006.png"),
+                TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_007.png"),
+                TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_008.png"),
+                TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_009.png"),
             ];
 
             JumpSpriteList =
             [
-                new Texture("src/assets/Player/04-Jump/PS_BALD GUY_JumpUp_000.png"),
-                new Texture("src/assets/Player/04-Jump/PS_BALD GUY_JumpFall_000.png"),
+                TextureManager.GetTexture("src/assets/Player/04-Jump/PS_BALD GUY_JumpUp_000.png"),
+                TextureManager.GetTexture("src/assets/Player/04-Jump/PS_BALD GUY_JumpFall_000.png"),
             ];
 
             HurtSpriteList =
             [
-                new Texture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_000.png"),
-                new Texture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_001.png"),
-                new Texture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_002.png"),
-                new Texture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_003.png"),
-                new Texture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_004.png"),
-                new Texture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_005.png"),
+                TextureManager.GetTexture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_000.png"),
+                TextureManager.GetTexture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_001.png"),
+                TextureManager.GetTexture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_002.png"),
+                TextureManager.GetTexture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_003.png"),
+                TextureManager.GetTexture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_004.png"),
+                TextureManager.GetTexture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_005.png"),
             ];
 
             DeadSpriteList =
             [
-                new Texture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_000.png"),
-                new Texture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_001.png"),
-                new Texture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_002.png"),
-                new Texture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_003.png"),
-                new Texture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_004.png"),
-                new Texture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_005.png"),
-                new Texture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_006.png"),
-                new Texture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_007.png"),
-                new Texture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_008.png"),
-                new Texture("src/assets/Player/07-Dead/Dead10.png"),
+                TextureManager.GetTexture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_000.png"),
+                TextureManager.GetTexture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_001.png"),
+                TextureManager.GetTexture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_002.png"),
+                TextureManager.GetTexture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_003.png"),
+                TextureManager.GetTexture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_004.png"),
+                TextureManager.GetTexture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_005.png"),
+                TextureManager.GetTexture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_006.png"),
+                TextureManager.GetTexture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_007.png"),
+                TextureManager.GetTexture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_008.png"),
+                TextureManager.GetTexture("src/assets/Player/07-Dead/Dead10.png"),
             ];
 
             currentAnimation = IdleSpriteList;
@@ -138,10 +151,12 @@ namespace Shared
             HandleInput(deltaTime, map);
             CheckHealth();
             ApplyGravity(deltaTime, map);
-            Debug(deltaTime);
+            HandleShooting(window, deltaTime, camera, map);
+            UpdateProjectiles(deltaTime);
+            UpdatePlayerUi(window);
             PlayerAnimation(deltaTime);
-            DrawPlayerUi(window, camera);
-            Render(window);
+            Debug(deltaTime, window); 
+            Render(window,camera  );
         }
 
         private void ApplyGravity(float deltaTime, Map map)
@@ -153,9 +168,9 @@ namespace Shared
                 
                 // Créer une zone de collision qui prend en compte l'origine centrée
                 FloatRect newBounds = new FloatRect(
-                    newPosition.X - sprite.GetGlobalBounds().Width / 2,
-                    newPosition.Y - sprite.GetGlobalBounds().Height / 2,
-                    sprite.GetGlobalBounds().Width,
+                    newPosition.X - (sprite.GetGlobalBounds().Width / 2) ,
+                    newPosition.Y - (sprite.GetGlobalBounds().Height / 2) ,
+                    sprite.GetGlobalBounds().Width -5,
                     sprite.GetGlobalBounds().Height- 4
                 );
 
@@ -219,9 +234,9 @@ namespace Shared
             
             // Créer une zone de collision qui prend en compte l'origine centrée
             FloatRect newBounds = new FloatRect(
-                newPosition.X - sprite.GetGlobalBounds().Width / 2,
-                newPosition.Y - sprite.GetGlobalBounds().Height / 2,
-                sprite.GetGlobalBounds().Width,
+                newPosition.X -( sprite.GetGlobalBounds().Width / 2) ,
+                newPosition.Y - (sprite.GetGlobalBounds().Height / 2) ,
+                sprite.GetGlobalBounds().Width -5,
                 sprite.GetGlobalBounds().Height-4
             );
 
@@ -279,21 +294,78 @@ namespace Shared
             }
         }
 
-        private void Debug(float deltaTime)
+        private uint CalculateFontSize(RenderWindow window)
         {
+            // Calculer la taille de police en fonction de la taille de la fenêtre
+            // On utilise la largeur de la fenêtre comme référence
+            float baseWidth = 1920f; // Largeur de référence
+            float currentWidth = window.Size.X;
+            float scale = currentWidth / baseWidth;
+            
+            // Limiter la taille minimale et maximale
+            uint newSize = (uint)(baseFontSize * scale);
+            return Math.Max(12, Math.Min(40, newSize));
+        }
+
+        private void UpdateTextSize(RenderWindow window)
+        {
+            uint newSize = CalculateFontSize(window);
+            if (newSize != FontSize)
+            {
+                FontSize = newSize;
+                PlayerHealthUi.CharacterSize = FontSize;
+                fpsText.CharacterSize = FontSize;
+                playerPosition.CharacterSize = FontSize;
+                playerVerticalSpeed.CharacterSize = FontSize;
+            }
+        }
+
+        private void Debug(float deltaTime,  RenderWindow window)
+        {   
             timer += deltaTime;
             frameCount++;
 
             if (timer >= 0.5f)
             {
-                Console.Clear();
-                Console.WriteLine("FPS: " + frameCount *2);
-                Console.WriteLine("Player position: " + sprite.Position.X + ", " + sprite.Position.Y);
-                Console.WriteLine("Player Vertical Speed: " + verticalSpeed);
-
+                fpsText.DisplayedString = "FPS: " + frameCount * 2;
+                playerPosition.DisplayedString = "Player position: " + sprite.Position.X + ", " + sprite.Position.Y;
+                playerVerticalSpeed.DisplayedString = "Player Vertical Speed: " + verticalSpeed;
                 timer = 0;
                 frameCount = 0;
             }
+
+            UpdateTextSize(window);
+
+            // Utiliser la vue UI pour le texte
+            View uiView = new View(new FloatRect(0, 0, window.Size.X, window.Size.Y));
+            window.SetView(uiView);
+
+            // Calculer la position en pixels
+            float screenWidth = window.Size.X;
+            float screenHeight = window.Size.Y;
+            
+            fpsText.Position = new Vector2f(
+                screenWidth * 0.02f,
+                screenHeight * 0.02f
+            );
+            fpsText.FillColor = Color.White;
+
+            playerPosition.Position = new Vector2f(
+                screenWidth * 0.02f,
+                screenHeight * 0.05f
+            );
+            playerPosition.FillColor = Color.White;
+
+            playerVerticalSpeed.Position = new Vector2f(
+                screenWidth * 0.02f,
+                screenHeight * 0.08f
+            );
+            playerVerticalSpeed.FillColor = Color.White;
+
+            
+
+            // Restaurer la vue du jeu
+            
         }
 
         private void PlayerAnimation(float deltaTime)
@@ -371,9 +443,49 @@ namespace Shared
             }
         }
 
-        public void Render(RenderWindow window)
+        private void HandleShooting(RenderWindow window, float deltaTime, Camera camera, Map map)
         {
+            if (!isAlive) return;
+
+            shootTimer -= deltaTime;
+            if (shootTimer <= 0 && Mouse.IsButtonPressed(Mouse.Button.Left))
+            {
+                // Obtenir la position de la souris dans le monde du jeu
+                Vector2i mousePos = Mouse.GetPosition(window);
+                Vector2f worldPos = window.MapPixelToCoords(mousePos, camera.GetView());
+                
+                // Créer un nouveau projectile avec la référence à la map
+                Projectile projectile = new Projectile(sprite.Position, worldPos, map);
+                projectiles.Add(projectile);
+                
+                shootTimer = shootCooldown;
+            }
+        }
+
+        private void UpdateProjectiles(float deltaTime)
+        {
+            // Mettre à jour tous les projectiles actifs
+            for (int i = projectiles.Count - 1; i >= 0; i--)
+            {
+                projectiles[i].Update(deltaTime);
+                
+                // Supprimer les projectiles inactifs
+                if (!projectiles[i].IsActive())
+                {
+                    projectiles.RemoveAt(i);
+                }
+            }
+        }
+
+        public void Render(RenderWindow window, Camera camera)
+        {   
+            DrawPlayerUi(window, camera); 
             window.Draw(sprite);
+            // Dessiner tous les projectiles
+            foreach (var projectile in projectiles)
+            {
+                projectile.Draw(window);
+            }
         }
 
         public Sprite GetSprite()
@@ -405,21 +517,36 @@ namespace Shared
         }
 
 
-        private void DrawPlayerUi(RenderWindow window, Camera camera){
-            SetPlayerHealthUi(camera);
 
-            window.Draw(PlayerHealthUi);
-        }
+        private void UpdatePlayerUi(RenderWindow window){
+            UpdateTextSize(window);
 
-        private void SetPlayerHealthUi(Camera camera){
-            PlayerHealthUi.DisplayedString = health + "/" + maxHealth +"HP";
-            Vector2f cameraPosition = camera.GetView().Center;
+            // Utiliser la vue UI pour le texte
+            View uiView = new View(new FloatRect(0, 0, window.Size.X, window.Size.Y));
+            window.SetView(uiView);
+
+            // Calculer la position en pixels
+            float screenWidth = window.Size.X;
+            float screenHeight = window.Size.Y;
+            
+            PlayerHealthUi.DisplayedString = health + "/" + maxHealth + " HP";
             PlayerHealthUi.Position = new Vector2f(
-                cameraPosition.X +(Camera.ViewWidth * PlayerHealthUiPositionX),
-                cameraPosition.Y + (Camera.ViewHeight * PlayerHealthUiPositionY)
-                );
+                screenWidth * 0.02f,
+                screenHeight * 0.95f
+            );
             PlayerHealthUi.FillColor = Color.White;
+        } 
+
+        private void DrawPlayerUi(RenderWindow window, Camera camera)
+        {   
+            window.Draw(fpsText);
+            window.Draw(playerPosition);
+            window.Draw(playerVerticalSpeed);
+            window.Draw(PlayerHealthUi);
+            window.SetView(camera.GetView());
         }
+
+        
         
   
     }
