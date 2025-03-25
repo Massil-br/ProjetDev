@@ -203,7 +203,7 @@ namespace Shared
             Vector2f movement = new(0, 0);
 
             // Gérer le saut
-            if (Keyboard.IsKeyPressed(Keyboard.Key.Z) && (TileOnGround(map) != 0 || FallGraceTimer > 0) )
+            if (Keyboard.IsKeyPressed(Keyboard.Key.Z) && (TileOnGround(map) == 1 || FallGraceTimer > 0)  )
             {
                 verticalSpeed = -JumpForce;  // Sauter
                 FallGraceTimer = 0; // Réinitialiser le timer de grâce de chute
@@ -262,7 +262,7 @@ namespace Shared
             );
 
             int tileType = map.IsColliding(bounds);
-            if (tileType != 0)
+            if (tileType  ==1)
             {
                 FallGraceTimer = FallGracePeriod; // Réinitialiser le timer de grâce de chute
             }
