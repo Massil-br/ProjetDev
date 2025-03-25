@@ -80,12 +80,12 @@ namespace src
             window.SetView(camera.GetView());
 
             // Handle input
-            if (Keyboard.IsKeyPressed(Keyboard.Key.Up) && ArrowSelectionTimer <= 0)
+            if (Keyboard.IsKeyPressed(Keyboard.Key.Z) && ArrowSelectionTimer <= 0)
             {
                 selectedOption = (selectedOption - 1 + 3) % 3;
                 ArrowSelectionTimer = 0.2f;
             }
-            if (Keyboard.IsKeyPressed(Keyboard.Key.Down) && ArrowSelectionTimer <= 0)
+            if (Keyboard.IsKeyPressed(Keyboard.Key.S) && ArrowSelectionTimer <= 0)
             {
                 selectedOption = (selectedOption + 1) % 3;
                 ArrowSelectionTimer = 0.2f;

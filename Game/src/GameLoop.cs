@@ -1,4 +1,3 @@
-
 using SFML.Graphics;
 using Shared;
 
@@ -27,8 +26,6 @@ namespace src
 
         public static State RunGameLoop(Player player, Map map, float deltaTime, RenderWindow window, Camera camera)
         {   
-            
-            
             player.Update(window, deltaTime, map, camera);
             camera.Update(player.GetSprite().Position);
             map.Draw(window);
@@ -36,6 +33,8 @@ namespace src
 
             return State.Playing;
         }
+
+     
 
         
         

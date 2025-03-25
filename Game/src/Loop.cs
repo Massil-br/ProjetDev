@@ -30,16 +30,14 @@ namespace src
 
         public Loop()
         {
-            window = new RenderWindow(new VideoMode(640, 360), "Ma fenêtre SFML");
+            window = new RenderWindow(new VideoMode(1280, 720), "Ma fenêtre SFML");
             clock = new Clock();
-            camera = new Camera(1280, 720);
+            camera = new Camera(640, 360);
 
             window.Closed += (sender, e) => window.Close();
             window.Resized += OnWindowResized;
             window.LostFocus += OnLostFocus;
             window.GainedFocus += OnGainedFocus;
-            
-           
         }
 
         private void OnGainedFocus(object? sender, EventArgs e)
@@ -58,15 +56,7 @@ namespace src
             GameLoop.ResizeCamera(camera);
             Camera.ViewHeight = camera.GetHeight();
             Camera.ViewWidth = camera.GetWidth();
-     
         }
-         
-
-       
-
-        
-
-     
 
         public void Run()
         {
@@ -81,18 +71,16 @@ namespace src
 
                 window.DispatchEvents();
                 window.Clear();
-                
 
                 switch (currentState)
                 {
                     case State.MainMenu:
-                    if (firstEntryToMainMenu){
-                        GameLoop.ResizeCamera(camera);
-                        MainMenu.InitMainMenu(camera);
-                        firstEntryToMainMenu  = false;
-                        firstEntryToGameLoop = true;
-                    }
-                        
+                        if (firstEntryToMainMenu){
+                            GameLoop.ResizeCamera(camera);
+                            MainMenu.InitMainMenu(camera);
+                            firstEntryToMainMenu  = false;
+                            firstEntryToGameLoop = true;
+                        }
                         currentState = MainMenu.RunMainMenu(window, deltaTime, camera);
                         break;
                     case State.Playing:
