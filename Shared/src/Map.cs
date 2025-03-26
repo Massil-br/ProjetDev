@@ -108,6 +108,8 @@ namespace Shared
             for (int i = -(width/2); i < width/2; i++){
                 SetTile(i,24,3);
             }
+            SetTile(5,-5,1);
+            SetTile(5,-6,1);
 
             for (int i = 3;  i < 200; i++){
                 SetTile(i, -4, 1);

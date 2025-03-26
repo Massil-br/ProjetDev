@@ -27,12 +27,14 @@ namespace src
         public static State RunGameLoop(Player player, Map map, float deltaTime, RenderWindow window, Camera camera)
         {   
             player.Update(window, deltaTime, map, camera);
-            camera.Update(player.GetSprite().Position);
+            camera.Update(player.GetPosition());
             map.Draw(window);
             window.SetView(camera.GetView());
 
             return State.Playing;
         }
+
+        
 
      
 

@@ -56,8 +56,11 @@ namespace Shared
         private float shootTimer = 0f;
 
         Text fpsText = new();
-        Text playerPosition = new();
+        Text playerPositionText = new();
         Text playerVerticalSpeed = new();
+
+        private Vector2f playerPosition; // Position du joueur
+        private FloatRect Hitbox; // Hitbox pour la collision
 
         public Player(string texturePath, string name, int maxHealth, int attackDamage)
         {
@@ -69,7 +72,7 @@ namespace Shared
             this.attackDamage = attackDamage;
             texture = TextureManager.GetTexture(texturePath);
             sprite = new Sprite(texture);
-            sprite.Position = new Vector2f(0, -1); // Spawn au point (0,0)
+            playerPosition = new Vector2f(0, -1); // Position initiale
             float scaleX = 32f / sprite.TextureRect.Width;
             float scaleY = 32f / sprite.TextureRect.Height;
             sprite.Scale = new Vector2f(Math.Abs(scaleX), scaleY); // S'assurer que le scale initial est positif
@@ -78,7 +81,7 @@ namespace Shared
             sprite.Origin = new Vector2f(sprite.TextureRect.Width / 2, sprite.TextureRect.Height / 2);
             PlayerHealthUi = new Text("", mainFont, FontSize);
             fpsText = new("FPS: " + frameCount * 2, mainFont, FontSize);
-            playerPosition = new("Player position: " + sprite.Position.X + ", " + sprite.Position.Y, mainFont, FontSize);
+            playerPositionText = new("Player position: " + playerPosition.X + ", " + playerPosition.Y, mainFont, FontSize);
             playerVerticalSpeed = new("Player Vertical Speed: " + verticalSpeed, mainFont, FontSize);
 
             IdleSpriteList =
@@ -164,24 +167,22 @@ namespace Shared
             if (applyGravity)
             {
                 verticalSpeed += gravity * deltaTime * 3;
-                Vector2f newPosition = sprite.Position + new Vector2f(0, verticalSpeed * deltaTime);
+                Vector2f newPosition = playerPosition + new Vector2f(0, verticalSpeed * deltaTime);
                 
-                // Créer une zone de collision qui prend en compte l'origine centrée
-                FloatRect newBounds = new FloatRect(
-                    newPosition.X - (sprite.GetGlobalBounds().Width / 2) ,
-                    newPosition.Y - (sprite.GetGlobalBounds().Height / 2) ,
-                    sprite.GetGlobalBounds().Width -5,
-                    sprite.GetGlobalBounds().Height- 4
-                );
+                // Mettre à jour la hitbox avec une largeur réduite de 10 pixels
+                Hitbox = new FloatRect(newPosition.X - (sprite.GetGlobalBounds().Width / 2) + 5, // Ajustement pour centrer la hitbox
+                                        newPosition.Y - (sprite.GetGlobalBounds().Height / 2),
+                                        sprite.GetGlobalBounds().Width - 10, // Réduction de 10 pixels
+                                        sprite.GetGlobalBounds().Height);
 
-                int tileType = map.IsColliding(newBounds);
+                int tileType = map.IsColliding(Hitbox);
                 if (tileType == 0 && newPosition.Y >= -map.GetHeight() * map.GetTileSize() / 2 && newPosition.Y + sprite.GetGlobalBounds().Height / 2 <= map.GetHeight() * map.GetTileSize() / 2)
                 {
-                    sprite.Position = newPosition;
+                    playerPosition = newPosition; // Mettre à jour la position du joueur
                 }
                 else if (tileType == 3) // Collision avec une tuile de type 3 (lave)
                 {
-                    sprite.Position = new Vector2f(1*map.GetTileSize(), 0 * map.GetTileSize()); // Réinitialise la position du joueur
+                    playerPosition = new Vector2f(1 * map.GetTileSize(), 0 * map.GetTileSize()); // Réinitialise la position du joueur
                     verticalSpeed = 0.0f;
                 }
                 else
@@ -230,21 +231,17 @@ namespace Shared
             }
 
             // Calculer la nouvelle position
-            Vector2f newPosition = sprite.Position + movement;
+            Vector2f newPosition = playerPosition + movement;
             
-            // Créer une zone de collision qui prend en compte l'origine centrée
-            FloatRect newBounds = new FloatRect(
-                newPosition.X -( sprite.GetGlobalBounds().Width / 2) ,
-                newPosition.Y - (sprite.GetGlobalBounds().Height / 2) ,
-                sprite.GetGlobalBounds().Width -5,
-                sprite.GetGlobalBounds().Height-4
-            );
+            // Mettre à jour la hitbox avec une hauteur réduite de 4 pixels
+            Hitbox.Left = newPosition.X - (Hitbox.Width / 2);
+            Hitbox.Top = newPosition.Y - (Hitbox.Height / 2) ; // Ajustement pour centrer la hitbox
 
-            // Vérifier les collisions horizontales
-            int tileType = map.IsColliding(newBounds);
+            // Vérifier les collisions
+            int tileType = map.IsColliding(Hitbox);
             if (tileType == 0 && newPosition.X >= -map.GetWidth() * map.GetTileSize() / 2 && newPosition.X + sprite.GetGlobalBounds().Width / 2 <= map.GetWidth() * map.GetTileSize() / 2)
             {
-                sprite.Position = newPosition;
+                playerPosition = newPosition; // Mettre à jour la position du joueur
             }
 
             // Mettre à jour l'orientation du sprite
@@ -255,8 +252,8 @@ namespace Shared
         {
             // Créer une zone de collision qui prend en compte l'origine centrée
             FloatRect bounds = new FloatRect(
-                sprite.Position.X - 1, // Déplace les limites vers le centre horizontalement
-                sprite.Position.Y + sprite.GetGlobalBounds().Height / 2, // Déplace les limites vers le bas pour vérifier la collision avec le sol
+                playerPosition.X - 1, // Déplace les limites vers le centre horizontalement
+                playerPosition.Y + sprite.GetGlobalBounds().Height / 2, // Déplace les limites vers le bas pour vérifier la collision avec le sol
                 2, // Réduire la largeur pour ne vérifier que le centre
                 1  // Réduire la hauteur pour ne vérifier que le bas
             );
@@ -315,7 +312,7 @@ namespace Shared
                 FontSize = newSize;
                 PlayerHealthUi.CharacterSize = FontSize;
                 fpsText.CharacterSize = FontSize;
-                playerPosition.CharacterSize = FontSize;
+                playerPositionText.CharacterSize = FontSize;
                 playerVerticalSpeed.CharacterSize = FontSize;
             }
         }
@@ -328,7 +325,7 @@ namespace Shared
             if (timer >= 0.5f)
             {
                 fpsText.DisplayedString = "FPS: " + frameCount * 2;
-                playerPosition.DisplayedString = "Player position: " + sprite.Position.X + ", " + sprite.Position.Y;
+                playerPositionText.DisplayedString = "Player position: " + playerPositionText.Position.X + ", " + playerPositionText.Position.Y;
                 playerVerticalSpeed.DisplayedString = "Player Vertical Speed: " + verticalSpeed;
                 timer = 0;
                 frameCount = 0;
@@ -350,11 +347,11 @@ namespace Shared
             );
             fpsText.FillColor = Color.White;
 
-            playerPosition.Position = new Vector2f(
+            playerPositionText.Position = new Vector2f(
                 screenWidth * 0.02f,
                 screenHeight * 0.05f
             );
-            playerPosition.FillColor = Color.White;
+            playerPositionText.FillColor = Color.White;
 
             playerVerticalSpeed.Position = new Vector2f(
                 screenWidth * 0.02f,
@@ -364,7 +361,7 @@ namespace Shared
 
             
 
-            // Restaurer la vue du jeu
+           
             
         }
 
@@ -455,7 +452,7 @@ namespace Shared
                 Vector2f worldPos = window.MapPixelToCoords(mousePos, camera.GetView());
                 
                 // Créer un nouveau projectile avec la référence à la map
-                Projectile projectile = new Projectile(sprite.Position, worldPos, map);
+                Projectile projectile = new Projectile(playerPosition, worldPos, map);
                 projectiles.Add(projectile);
                 
                 shootTimer = shootCooldown;
@@ -480,6 +477,8 @@ namespace Shared
         public void Render(RenderWindow window, Camera camera)
         {   
             DrawPlayerUi(window, camera); 
+            float offsetX = isFacingRight ? -5 : 5; // Décalage à droite si face à droite, sinon à gauche
+            sprite.Position = new Vector2f(playerPosition.X + offsetX, playerPosition.Y + 4); // Ajouter 4 pour le décalage vertical
             window.Draw(sprite);
             // Dessiner tous les projectiles
             foreach (var projectile in projectiles)
@@ -500,8 +499,7 @@ namespace Shared
 
         private void UpdateSpriteOrientation()
         {
-            // Sauvegarder la position actuelle
-            Vector2f currentPos = sprite.Position;
+            
             
             if (!isFacingRight)
             {
@@ -512,8 +510,7 @@ namespace Shared
                 sprite.Scale = new Vector2f(-Math.Abs(sprite.Scale.X), sprite.Scale.Y);
             }
 
-            // Restaurer la position
-            sprite.Position = currentPos;
+            
         }
 
 
@@ -540,10 +537,14 @@ namespace Shared
         private void DrawPlayerUi(RenderWindow window, Camera camera)
         {   
             window.Draw(fpsText);
-            window.Draw(playerPosition);
+            window.Draw(playerPositionText);
             window.Draw(playerVerticalSpeed);
             window.Draw(PlayerHealthUi);
             window.SetView(camera.GetView());
+        }
+
+        public Vector2f GetPosition(){
+            return playerPosition;
         }
 
         
