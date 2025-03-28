@@ -33,6 +33,7 @@ namespace src
             window = new RenderWindow(new VideoMode(1280, 720), "Ma fenêtre SFML");
             clock = new Clock();
             camera = new Camera(640, 360);
+           
 
             window.Closed += (sender, e) => window.Close();
             window.Resized += OnWindowResized;
@@ -76,12 +77,11 @@ namespace src
                 {
                     case State.MainMenu:
                         if (firstEntryToMainMenu){
-                            GameLoop.ResizeCamera(camera);
-                            MainMenu.InitMainMenu(camera);
+                            MainMenu.InitMainMenu();
                             firstEntryToMainMenu  = false;
                             firstEntryToGameLoop = true;
                         }
-                        currentState = MainMenu.RunMainMenu(window, deltaTime, camera);
+                        currentState = MainMenu.RunMainMenu(window, deltaTime);
                         break;
                     case State.Playing:
                         if (firstEntryToGameLoop){
