@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -12,7 +13,7 @@ namespace Shared
         private int maxHealth;
         private bool isAlive;
         private int attackDamage;
-        private float speed = 100.0f * 1.3f;
+        private float  speed = 100.0f * 1.3f;
         private Sprite sprite;
 
         private Font mainFont = new("src/assets/Font/Poppins-ExtraBold.ttf");
@@ -52,8 +53,11 @@ namespace Shared
         private const float PlayerHealthUiPositionY =-0.48f;
 
         private List<Projectile> projectiles = new();
-        private float shootCooldown = 1f; // Temps entre chaque tir
+        private float shootCooldown = 0.5f; // Temps entre chaque tir
         private float shootTimer = 0f;
+
+        private bool projectileShooted = false;
+        private bool wasMousePressed = false;
 
         Text fpsText = new();
         Text playerPositionText = new();
@@ -83,6 +87,7 @@ namespace Shared
             fpsText = new("FPS: " + frameCount * 2, mainFont, FontSize);
             playerPositionText = new("Player position: " + playerPosition.X + ", " + playerPosition.Y, mainFont, FontSize);
             playerVerticalSpeed = new("Player Vertical Speed: " + verticalSpeed, mainFont, FontSize);
+            
 
             IdleSpriteList =
             [
@@ -239,7 +244,7 @@ namespace Shared
 
             // Vérifier les collisions
             int tileType = map.IsColliding(Hitbox);
-            if (tileType == 0 && newPosition.X >= -map.GetWidth() * map.GetTileSize() / 2 && newPosition.X + sprite.GetGlobalBounds().Width / 2 <= map.GetWidth() * map.GetTileSize() / 2)
+            if (tileType == 0 && newPosition.X >= -map.GetWidth() * map.GetTileSize() / 2 && newPosition.X + Hitbox.Width / 2  <= map.GetWidth() * map.GetTileSize() / 2)
             {
                 playerPosition = newPosition; // Mettre à jour la position du joueur
             }
@@ -325,8 +330,8 @@ namespace Shared
             if (timer >= 0.5f)
             {
                 fpsText.DisplayedString = "FPS: " + frameCount * 2;
-                playerPositionText.DisplayedString = "Player position: " + playerPositionText.Position.X + ", " + playerPositionText.Position.Y;
-                playerVerticalSpeed.DisplayedString = "Player Vertical Speed: " + verticalSpeed;
+                playerPositionText.DisplayedString = "Player position: " + playerPosition.X / 32 + ", " + playerPosition.Y /32;
+                playerVerticalSpeed.DisplayedString = "Player Vertical Speed: " + verticalSpeed /32;
                 timer = 0;
                 frameCount = 0;
             }
@@ -445,8 +450,10 @@ namespace Shared
             if (!isAlive) return;
 
             shootTimer -= deltaTime;
-            if (shootTimer <= 0 && Mouse.IsButtonPressed(Mouse.Button.Left))
-            {
+            bool isMousePressed = Mouse.IsButtonPressed(Mouse.Button.Left);
+            if (shootTimer <= 0 && isMousePressed && !projectileShooted )
+            {   
+                projectileShooted = true;
                 // Obtenir la position de la souris dans le monde du jeu
                 Vector2i mousePos = Mouse.GetPosition(window);
                 Vector2f worldPos = window.MapPixelToCoords(mousePos, camera.GetView());
@@ -457,6 +464,12 @@ namespace Shared
                 
                 shootTimer = shootCooldown;
             }
+            if (!isMousePressed && wasMousePressed)
+            {
+                projectileShooted = false;
+            }
+
+            wasMousePressed = isMousePressed;
         }
 
         private void UpdateProjectiles(float deltaTime)
@@ -547,8 +560,7 @@ namespace Shared
             return playerPosition;
         }
 
-        
-        
+
   
     }
 }
