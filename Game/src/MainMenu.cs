@@ -11,10 +11,10 @@ namespace src
     {
         public static bool MainMenuInitialized = false;
         public static Font mainFont = new("src/assets/Team 401.ttf");
-        public static Text titleText = new Text("Main Menu", mainFont, 30);
-        public static Text soloText = new Text("Solo", mainFont, 20);
-        public static Text multiplayerText = new Text("Multiplayer", mainFont, 20);
-        public static Text quitText = new Text("Quit", mainFont, 20);
+        public static Text titleText = new Text("Main Menu", mainFont, 50);
+        public static Text soloText = new Text("Solo", mainFont, 30);
+        public static Text multiplayerText = new Text("Multiplayer", mainFont, 30);
+        public static Text quitText = new Text("Quit", mainFont, 30);
         public static int selectedOption = 0;
 
         public static float ArrowSelectionTimer = 0f;
