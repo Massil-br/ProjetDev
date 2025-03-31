@@ -14,6 +14,7 @@ public class Server
     private Dictionary<int, Vector2f> players = new Dictionary<int, Vector2f>();
     private Dictionary<int, IPEndPoint> playerEndPoints = new Dictionary<int, IPEndPoint>();
     private Dictionary<int, int> playerIntAnimation = new Dictionary<int, int>();
+    private Dictionary<int, bool> playerFacing = new Dictionary<int, bool>();
     
 
     public Server()
@@ -42,17 +43,19 @@ public class Server
                     playerEndPoints[assignedId] = clientEndPoint;
                     Console.WriteLine($"New player connected with ID {assignedId}");
                 }
-                else if (parts.Length == 4)
+                else if (parts.Length == 5)
                 {
                     if (int.TryParse(parts[0], out int playerId))
                     {
                         float x = float.Parse(parts[1]);
                         float y = float.Parse(parts[2]);
                         int intAnimation = int.Parse(parts[3]);
+                        bool isFacingRight = bool.Parse(parts[4]);
 
 
                         players[playerId] = new Vector2f(x, y);
-                        playerIntAnimation[playerId]= intAnimation; 
+                        playerIntAnimation[playerId]= intAnimation;
+
                     }
                 }
 
@@ -60,7 +63,7 @@ public class Server
                 StringBuilder responseBuilder = new StringBuilder();
                 foreach (var kvp in players)
                 {
-                    responseBuilder.Append($"{kvp.Key}:{kvp.Value.X}:{kvp.Value.Y}: {playerIntAnimation[kvp.Key]}|");
+                    responseBuilder.Append($"{kvp.Key}:{kvp.Value.X}:{kvp.Value.Y}: {playerIntAnimation[kvp.Key]} : {playerFacing[kvp.Key]}|");
                 }
 
                 string responseMessage = responseBuilder.ToString().TrimEnd('|');

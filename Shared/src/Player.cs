@@ -546,6 +546,13 @@ namespace Shared
             window.SetView(camera.GetView());
         }
 
+        public bool IsFacingRight(){
+            return isFacingRight;
+        }
+        public void SetFacing(bool isFacingRight){
+            this.isFacingRight = isFacingRight;
+        }
+
         public Vector2f GetPosition()
         {
             return playerPosition;
