@@ -162,7 +162,6 @@ namespace Shared
             ApplyGravity(deltaTime, map);
             HandleShooting(window, deltaTime, camera, map);
             UpdateProjectiles(deltaTime);
-            UpdatePlayerUi(window);
             PlayerAnimation(deltaTime);
             
             Render(window, camera);
@@ -521,7 +520,7 @@ namespace Shared
             }
         }
 
-        private void UpdatePlayerUi(RenderWindow window)
+        public void UpdatePlayerUi(RenderWindow window)
         {
             UpdateTextSize(window);
 

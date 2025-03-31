@@ -25,21 +25,26 @@ namespace src
 
         public static State RunGameLoop(Player player, Map map, float deltaTime, RenderWindow window, Camera camera, Dictionary<int, Player> otherPlayers)
         {   
-            player.Debug(deltaTime, window);
-            player.DrawPlayerUi(window, camera);
+            
             player.Update(window, deltaTime, map, camera);
+            player.UpdatePlayerUi(window);
+             player.Debug(deltaTime, window);
+            player.DrawPlayerUi(window, camera);
             camera.Update(player.GetPosition());
             map.Draw(window);
+             
             window.SetView(camera.GetView());
+           
 
             // Draw other players
             foreach (var otherPlayer in otherPlayers.Values)
             {
                 otherPlayer.Render(window, camera);
             }
-
+            
             // Draw the main player
             player.Render(window, camera);
+           
 
             return State.Playing;
         }
