@@ -55,7 +55,7 @@ public class Server
 
                         players[playerId] = new Vector2f(x, y);
                         playerIntAnimation[playerId]= intAnimation;
-
+                        playerFacing[playerId]= isFacingRight;
                     }
                 }
 
