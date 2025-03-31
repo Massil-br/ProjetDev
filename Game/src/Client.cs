@@ -48,7 +48,7 @@ public class Client
         while (true)
         {
             SendPlayerPosition(player);
-            Thread.Sleep(100); // Send position every 100ms
+            Thread.Sleep(10); // Send position every 100ms
         }
     }
 

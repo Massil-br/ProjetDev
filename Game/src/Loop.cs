@@ -105,7 +105,7 @@ namespace src
                             firstEntryToGameLoop = false;
                             firstEntryToMainMenu = false;
                             GameLoop.ResizeCamera(camera);
-                            udpClient = new Client("127.0.0.1");
+                            udpClient = new Client("192.168.1.44");
                             Thread clientThread = new Thread(() => udpClient.Start(player));
                             clientThread.IsBackground = true;
                             clientThread.Start();
