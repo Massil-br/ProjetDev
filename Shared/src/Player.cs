@@ -1,96 +1,95 @@
-using System.Security.Cryptography.X509Certificates;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-
+using System.Collections.Generic;
 
 namespace Shared
 {
     public class Player
     {
+        // Player attributes
         private string name;
         private int health;
         private int maxHealth;
         private bool isAlive;
         private int attackDamage;
-        private float  speed = 100.0f * 1.3f;
-        private Sprite sprite;
+        private float speed = 100.0f * 1.3f;
+        private float jumpForce = 300f;
+        private FloatRect hitbox;
 
-        private Font mainFont = new("src/assets/Font/Poppins-ExtraBold.ttf");
-        private uint baseFontSize = 30;
-        private uint FontSize = 30;
-        private Text PlayerHealthUi;
+        // Shooting projectiles
+        private List<Projectile> projectiles = new();
+        private float shootCooldown = 0.5f;
+        private float shootTimer = 0f;
+        private bool projectileShot = false;
+        private bool wasMousePressed = false;
 
-        private float JumpForce = 300f;
-
-        private Texture[] IdleSpriteList;
-        private Texture[] RunSpriteList;
-        private Texture[] JumpSpriteList;
-        private Texture[] HurtSpriteList;
-        private Texture[] DeadSpriteList;
-
-        private Texture texture;
-
-        private float FallGracePeriod = 0.15f; // Temps pendant lequel le joueur peut sauter après avoir quitté le sol
-        private float FallGraceTimer = 0f;
-
+        // Physics
+        private float fallGracePeriod = 0.15f; // Time during which the player can jump after leaving the ground
+        private float fallGraceTimer = 0f;
         private bool applyGravity = true;
         private float gravity = 9.8f * 15;
         private float verticalSpeed = 0.0f;
 
-        private float timer = 0;
-        private int frameCount = 0;
+        // Player animation
+        private Texture[] idleSpriteList;
+        private Texture[] runSpriteList;
+        private Texture[] jumpSpriteList;
+        private Texture[] hurtSpriteList;
+        private Texture[] deadSpriteList;
 
         private float animationTimer = 0f;
-        private float animationSpeed = 0.1f; // Vitesse de l'animation en secondes par frame
+        private float animationSpeed = 0.1f; // Animation speed in seconds per frame
         private int currentFrame = 0;
         private Texture[] currentAnimation = [];
-        private Texture[] previousAnimation = []; // Pour détecter les changements d'animation
-        
-        private bool isFacingRight = true; // Nouvelle variable pour suivre la direction
+        private Texture[] previousAnimation = []; // To detect animation changes
 
-        private const float PlayerHealthUiPositionX = -0.48f;
-        private const float PlayerHealthUiPositionY =-0.48f;
+        private bool isFacingRight = true;
 
-        private List<Projectile> projectiles = new();
-        private float shootCooldown = 0.5f; // Temps entre chaque tir
-        private float shootTimer = 0f;
+        // Rendering
+        private Texture texture;
+        private Sprite sprite;
 
-        private bool projectileShooted = false;
-        private bool wasMousePressed = false;
+        // Player UI
+        private const float playerHealthUiPositionX = -0.48f;
+        private const float playerHealthUiPositionY = -0.48f;
+        private Font mainFont = new("src/assets/Font/Poppins-ExtraBold.ttf");
+        private uint baseFontSize = 30;
+        private uint fontSize = 30;
+        private Text playerHealthUi;
 
-        Text fpsText = new();
-        Text playerPositionText = new();
-        Text playerVerticalSpeed = new();
+        // Debug UI
+        private float fpsTimer = 0;
+        private int frameCount = 0;
+        private Text fpsText = new();
+        private Text playerPositionText = new();
+        private Text playerVerticalSpeedText = new();
+        private Vector2f playerPosition; // Player position
 
-        private Vector2f playerPosition; // Position du joueur
-        private FloatRect Hitbox; // Hitbox pour la collision
-
-        public Player(string texturePath, string name, int maxHealth, int attackDamage)
+        public Player(string name, int maxHealth, int attackDamage)
         {
             this.name = name;
             this.maxHealth = maxHealth;
             this.health = maxHealth;
             this.isAlive = true;
-
             this.attackDamage = attackDamage;
-            texture = TextureManager.GetTexture(texturePath);
+
+            texture = TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_000.png");
             sprite = new Sprite(texture);
-            playerPosition = new Vector2f(0, -1); // Position initiale
+            playerPosition = new Vector2f(0, -1); // Initial position
             float scaleX = 32f / sprite.TextureRect.Width;
             float scaleY = 32f / sprite.TextureRect.Height;
-            sprite.Scale = new Vector2f(Math.Abs(scaleX), scaleY); // S'assurer que le scale initial est positif
-            
-            // Définir l'origine au centre du sprite
-            sprite.Origin = new Vector2f(sprite.TextureRect.Width / 2, sprite.TextureRect.Height / 2);
-            PlayerHealthUi = new Text("", mainFont, FontSize);
-            fpsText = new("FPS: " + frameCount * 2, mainFont, FontSize);
-            playerPositionText = new("Player position: " + playerPosition.X + ", " + playerPosition.Y, mainFont, FontSize);
-            playerVerticalSpeed = new("Player Vertical Speed: " + verticalSpeed, mainFont, FontSize);
-            
+            sprite.Scale = new Vector2f(Math.Abs(scaleX), scaleY); // Ensure initial scale is positive
 
-            IdleSpriteList =
-            [
+            // Set origin to the center of the sprite
+            sprite.Origin = new Vector2f(sprite.TextureRect.Width / 2, sprite.TextureRect.Height / 2);
+            playerHealthUi = new Text("", mainFont, fontSize);
+            fpsText = new Text("FPS: " + frameCount * 2, mainFont, fontSize);
+            playerPositionText = new Text("Player position: " + playerPosition.X + ", " + playerPosition.Y, mainFont, fontSize);
+            playerVerticalSpeedText = new Text("Player Vertical Speed: " + verticalSpeed, mainFont, fontSize);
+
+            idleSpriteList = new Texture[]
+            {
                 TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_000.png"),
                 TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_001.png"),
                 TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_002.png"),
@@ -103,10 +102,10 @@ namespace Shared
                 TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_009.png"),
                 TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_010.png"),
                 TextureManager.GetTexture("src/assets/Player/01-Idle/PS_BALD GUY_Idle_011.png"),
-            ];
+            };
 
-            RunSpriteList =
-            [
+            runSpriteList = new Texture[]
+            {
                 TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_000.png"),
                 TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_001.png"),
                 TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_002.png"),
@@ -117,26 +116,26 @@ namespace Shared
                 TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_007.png"),
                 TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_008.png"),
                 TextureManager.GetTexture("src/assets/Player/02-Run/PS_BALD GUY_Run_009.png"),
-            ];
+            };
 
-            JumpSpriteList =
-            [
+            jumpSpriteList = new Texture[]
+            {
                 TextureManager.GetTexture("src/assets/Player/04-Jump/PS_BALD GUY_JumpUp_000.png"),
                 TextureManager.GetTexture("src/assets/Player/04-Jump/PS_BALD GUY_JumpFall_000.png"),
-            ];
+            };
 
-            HurtSpriteList =
-            [
+            hurtSpriteList = new Texture[]
+            {
                 TextureManager.GetTexture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_000.png"),
                 TextureManager.GetTexture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_001.png"),
                 TextureManager.GetTexture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_002.png"),
                 TextureManager.GetTexture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_003.png"),
                 TextureManager.GetTexture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_004.png"),
                 TextureManager.GetTexture("src/assets/Player/06-Hurt/PS_BALD GUY_Hurt_005.png"),
-            ];
+            };
 
-            DeadSpriteList =
-            [
+            deadSpriteList = new Texture[]
+            {
                 TextureManager.GetTexture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_000.png"),
                 TextureManager.GetTexture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_001.png"),
                 TextureManager.GetTexture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_002.png"),
@@ -147,9 +146,9 @@ namespace Shared
                 TextureManager.GetTexture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_007.png"),
                 TextureManager.GetTexture("src/assets/Player/07-Dead/PS_BALD GUY_Dead_008.png"),
                 TextureManager.GetTexture("src/assets/Player/07-Dead/Dead10.png"),
-            ];
+            };
 
-            currentAnimation = IdleSpriteList;
+            currentAnimation = idleSpriteList;
         }
 
         public void Update(RenderWindow window, float deltaTime, Map map, Camera camera)
@@ -163,8 +162,8 @@ namespace Shared
             UpdateProjectiles(deltaTime);
             UpdatePlayerUi(window);
             PlayerAnimation(deltaTime);
-            Debug(deltaTime, window); 
-            Render(window,camera  );
+            Debug(deltaTime, window);
+            Render(window, camera);
         }
 
         private void ApplyGravity(float deltaTime, Map map)
@@ -173,21 +172,18 @@ namespace Shared
             {
                 verticalSpeed += gravity * deltaTime * 3;
                 Vector2f newPosition = playerPosition + new Vector2f(0, verticalSpeed * deltaTime);
-                
-                // Mettre à jour la hitbox avec une largeur réduite de 10 pixels
-                Hitbox = new FloatRect(newPosition.X - (sprite.GetGlobalBounds().Width / 2) + 5, // Ajustement pour centrer la hitbox
-                                        newPosition.Y - (sprite.GetGlobalBounds().Height / 2),
-                                        sprite.GetGlobalBounds().Width - 10, // Réduction de 10 pixels
-                                        sprite.GetGlobalBounds().Height);
 
-                int tileType = map.IsColliding(Hitbox);
+                // Update hitbox with reduced width of 10 pixels
+                hitbox = new FloatRect(newPosition.X - 8, newPosition.Y - 12, 16, 24);
+
+                int tileType = map.IsColliding(hitbox);
                 if (tileType == 0 && newPosition.Y >= -map.GetHeight() * map.GetTileSize() / 2 && newPosition.Y + sprite.GetGlobalBounds().Height / 2 <= map.GetHeight() * map.GetTileSize() / 2)
                 {
-                    playerPosition = newPosition; // Mettre à jour la position du joueur
+                    playerPosition = newPosition; // Update player position
                 }
-                else if (tileType == 3) // Collision avec une tuile de type 3 (lave)
+                else if (tileType == 3) // Collision with tile type 3 (lava)
                 {
-                    playerPosition = new Vector2f(1 * map.GetTileSize(), 0 * map.GetTileSize()); // Réinitialise la position du joueur
+                    playerPosition = new Vector2f(1 * map.GetTileSize(), 0 * map.GetTileSize()); // Reset player position
                     verticalSpeed = 0.0f;
                 }
                 else
@@ -198,75 +194,74 @@ namespace Shared
         }
 
         private void HandleInput(float deltaTime, Map map)
-        {   
+        {
             if (!isAlive) return;
-           
-            if (FallGraceTimer > 0)
+
+            if (fallGraceTimer > 0)
             {
-                FallGraceTimer -= deltaTime;
+                fallGraceTimer -= deltaTime;
             }
 
             Vector2f movement = new(0, 0);
 
-            // Gérer le saut
-            if (Keyboard.IsKeyPressed(Keyboard.Key.Z) && (TileOnGround(map) == 1 || FallGraceTimer > 0)  )
+            // Handle jump
+            if (Keyboard.IsKeyPressed(Keyboard.Key.Z) && (TileOnGround(map) == 1 || fallGraceTimer > 0))
             {
-                verticalSpeed = -JumpForce;  // Sauter
-                FallGraceTimer = 0; // Réinitialiser le timer de grâce de chute
+                verticalSpeed = -jumpForce;  // Jump
+                fallGraceTimer = 0; // Reset fall grace timer
             }
 
-            // Gérer le mouvement vers la gauche
+            // Handle left movement
             if (Keyboard.IsKeyPressed(Keyboard.Key.Q))
             {
                 movement.X -= speed * deltaTime;
                 isFacingRight = false;
             }
 
-            // Gérer le mouvement vers la droite
+            // Handle right movement
             if (Keyboard.IsKeyPressed(Keyboard.Key.D))
             {
                 movement.X += speed * deltaTime;
                 isFacingRight = true;
             }
 
-            // Gérer le saut sur une tuile de type 2
+            // Handle jump on tile type 2
             if (TileOnGround(map) == 2)
             {
-                verticalSpeed = -JumpForce * 1.5f;
+                verticalSpeed = -jumpForce * 1.5f;
             }
 
-            // Calculer la nouvelle position
+            // Calculate new position
             Vector2f newPosition = playerPosition + movement;
-            
-            // Mettre à jour la hitbox avec une hauteur réduite de 4 pixels
-            Hitbox.Left = newPosition.X - (Hitbox.Width / 2);
-            Hitbox.Top = newPosition.Y - (Hitbox.Height / 2) ; // Ajustement pour centrer la hitbox
 
-            // Vérifier les collisions
-            int tileType = map.IsColliding(Hitbox);
-            if (tileType == 0 && newPosition.X >= -map.GetWidth() * map.GetTileSize() / 2 && newPosition.X + Hitbox.Width / 2  <= map.GetWidth() * map.GetTileSize() / 2)
+            hitbox.Left = newPosition.X - (hitbox.Width / 2);
+            hitbox.Top = newPosition.Y - (hitbox.Height / 2);
+
+            // Check collisions
+            int tileType = map.IsColliding(hitbox);
+            if (tileType == 0 && newPosition.X >= -map.GetWidth() * map.GetTileSize() / 2 && newPosition.X + hitbox.Width / 2 <= map.GetWidth() * map.GetTileSize() / 2)
             {
-                playerPosition = newPosition; // Mettre à jour la position du joueur
+                playerPosition = newPosition; // Update player position
             }
 
-            // Mettre à jour l'orientation du sprite
+            // Update sprite orientation
             UpdateSpriteOrientation();
         }
 
         private int TileOnGround(Map map)
         {
-            // Créer une zone de collision qui prend en compte l'origine centrée
+            // Create a collision area that takes into account the centered origin
             FloatRect bounds = new FloatRect(
-                playerPosition.X - 1, // Déplace les limites vers le centre horizontalement
-                playerPosition.Y + sprite.GetGlobalBounds().Height / 2, // Déplace les limites vers le bas pour vérifier la collision avec le sol
-                2, // Réduire la largeur pour ne vérifier que le centre
-                1  // Réduire la hauteur pour ne vérifier que le bas
+                playerPosition.X - 1, // Move the bounds to the center horizontally
+                playerPosition.Y + sprite.GetGlobalBounds().Height / 2, // Move the bounds down to check collision with the ground
+                2, // Reduce width to check only the center
+                1  // Reduce height to check only the bottom
             );
 
             int tileType = map.IsColliding(bounds);
-            if (tileType  ==1)
+            if (tileType == 1)
             {
-                FallGraceTimer = FallGracePeriod; // Réinitialiser le timer de grâce de chute
+                fallGraceTimer = fallGracePeriod; // Reset fall grace timer
             }
 
             return tileType;
@@ -298,13 +293,13 @@ namespace Shared
 
         private uint CalculateFontSize(RenderWindow window)
         {
-            // Calculer la taille de police en fonction de la taille de la fenêtre
-            // On utilise la largeur de la fenêtre comme référence
-            float baseWidth = 1920f; // Largeur de référence
+            // Calculate font size based on window size
+            // Use window width as reference
+            float baseWidth = 1920f; // Reference width
             float currentWidth = window.Size.X;
             float scale = currentWidth / baseWidth;
-            
-            // Limiter la taille minimale et maximale
+
+            // Limit minimum and maximum size
             uint newSize = (uint)(baseFontSize * scale);
             return Math.Max(12, Math.Min(40, newSize));
         }
@@ -312,93 +307,79 @@ namespace Shared
         private void UpdateTextSize(RenderWindow window)
         {
             uint newSize = CalculateFontSize(window);
-            if (newSize != FontSize)
+            if (newSize != fontSize)
             {
-                FontSize = newSize;
-                PlayerHealthUi.CharacterSize = FontSize;
-                fpsText.CharacterSize = FontSize;
-                playerPositionText.CharacterSize = FontSize;
-                playerVerticalSpeed.CharacterSize = FontSize;
+                fontSize = newSize;
+                playerHealthUi.CharacterSize = fontSize;
+                fpsText.CharacterSize = fontSize;
+                playerPositionText.CharacterSize = fontSize;
+                playerVerticalSpeedText.CharacterSize = fontSize;
             }
         }
 
-        private void Debug(float deltaTime,  RenderWindow window)
-        {   
-            timer += deltaTime;
+        private void Debug(float deltaTime, RenderWindow window)
+        {
+            fpsTimer += deltaTime;
             frameCount++;
 
-            if (timer >= 0.5f)
+            if (fpsTimer >= 0.5f)
             {
                 fpsText.DisplayedString = "FPS: " + frameCount * 2;
-                playerPositionText.DisplayedString = "Player position: " + playerPosition.X / 32 + ", " + playerPosition.Y /32;
-                playerVerticalSpeed.DisplayedString = "Player Vertical Speed: " + verticalSpeed /32;
-                timer = 0;
+                playerPositionText.DisplayedString = "Player position: " + playerPosition.X / 32 + ", " + playerPosition.Y / 32;
+                playerVerticalSpeedText.DisplayedString = "Player Vertical Speed: " + verticalSpeed / 32;
+                fpsTimer = 0;
                 frameCount = 0;
             }
 
             UpdateTextSize(window);
 
-            // Utiliser la vue UI pour le texte
+            // Use UI view for text
             View uiView = new View(new FloatRect(0, 0, window.Size.X, window.Size.Y));
             window.SetView(uiView);
 
-            // Calculer la position en pixels
+            // Calculate position in pixels
             float screenWidth = window.Size.X;
             float screenHeight = window.Size.Y;
-            
-            fpsText.Position = new Vector2f(
-                screenWidth * 0.02f,
-                screenHeight * 0.02f
-            );
+
+            fpsText.Position = new Vector2f(screenWidth * 0.02f, screenHeight * 0.02f);
             fpsText.FillColor = Color.White;
 
-            playerPositionText.Position = new Vector2f(
-                screenWidth * 0.02f,
-                screenHeight * 0.05f
-            );
+            playerPositionText.Position = new Vector2f(screenWidth * 0.02f, screenHeight * 0.05f);
             playerPositionText.FillColor = Color.White;
 
-            playerVerticalSpeed.Position = new Vector2f(
-                screenWidth * 0.02f,
-                screenHeight * 0.08f
-            );
-            playerVerticalSpeed.FillColor = Color.White;
-
-            
-
-           
-            
+            playerVerticalSpeedText.Position = new Vector2f(screenWidth * 0.02f, screenHeight * 0.08f);
+            playerVerticalSpeedText.FillColor = Color.White;
         }
 
         private void PlayerAnimation(float deltaTime)
         {
-            // Déterminer quelle animation utiliser
+            // Determine which animation to use
             if (!isAlive)
             {
-                currentAnimation = DeadSpriteList;
+                currentAnimation = deadSpriteList;
             }
             else if (verticalSpeed != 0)
             {
-                currentAnimation = JumpSpriteList;
+                currentAnimation = jumpSpriteList;
             }
             else if (Keyboard.IsKeyPressed(Keyboard.Key.Q) || Keyboard.IsKeyPressed(Keyboard.Key.D))
             {
-                currentAnimation = RunSpriteList;
+                currentAnimation = runSpriteList;
             }
             else
             {
-                currentAnimation = IdleSpriteList;
+                currentAnimation = idleSpriteList;
             }
 
-            // Réinitialiser la frame si l'animation a changé
+            // Reset frame if animation has changed
             if (currentAnimation != previousAnimation)
             {
                 currentFrame = 0;
                 previousAnimation = currentAnimation;
             }
 
-            // Jouer l'animation appropriée
-            if (currentAnimation == JumpSpriteList)
+            // Play appropriate animation
+            if (currentAnimation == jumpSpriteList)
             {
                 PlayJumpAnimation();
             }
@@ -414,9 +395,9 @@ namespace Shared
             if (animationTimer >= animationSpeed)
             {
                 animationTimer = 0f;
-                if (currentAnimation == DeadSpriteList)
+                if (currentAnimation == deadSpriteList)
                 {
-                    // Pour l'animation de mort, on s'arrête à la dernière frame
+                    // For death animation, stop at the last frame
                     if (currentFrame < currentAnimation.Length - 1)
                     {
                         currentFrame++;
@@ -424,7 +405,7 @@ namespace Shared
                 }
                 else
                 {
-                    // Pour les autres animations, on boucle
+                    // For other animations, loop
                     currentFrame = (currentFrame + 1) % currentAnimation.Length;
                 }
             }
@@ -433,15 +414,15 @@ namespace Shared
 
         private void PlayJumpAnimation()
         {
-            if (JumpSpriteList == null || JumpSpriteList.Length < 2) return;
+            if (jumpSpriteList == null || jumpSpriteList.Length < 2) return;
 
             if (verticalSpeed < 0)
             {
-                sprite.Texture = JumpSpriteList[0];
+                sprite.Texture = jumpSpriteList[0];
             }
             else if (verticalSpeed > 0)
             {
-                sprite.Texture = JumpSpriteList[1];
+                sprite.Texture = jumpSpriteList[1];
             }
         }
 
@@ -451,22 +432,22 @@ namespace Shared
 
             shootTimer -= deltaTime;
             bool isMousePressed = Mouse.IsButtonPressed(Mouse.Button.Left);
-            if (shootTimer <= 0 && isMousePressed && !projectileShooted )
-            {   
-                projectileShooted = true;
-                // Obtenir la position de la souris dans le monde du jeu
+            if (shootTimer <= 0 && isMousePressed && !projectileShot)
+            {
+                projectileShot = true;
+                // Get mouse position in game world
                 Vector2i mousePos = Mouse.GetPosition(window);
                 Vector2f worldPos = window.MapPixelToCoords(mousePos, camera.GetView());
-                
-                // Créer un nouveau projectile avec la référence à la map
+
+                // Create a new projectile with reference to the map
                 Projectile projectile = new Projectile(playerPosition, worldPos, map);
                 projectiles.Add(projectile);
-                
+
                 shootTimer = shootCooldown;
             }
             if (!isMousePressed && wasMousePressed)
             {
-                projectileShooted = false;
+                projectileShot = false;
             }
 
             wasMousePressed = isMousePressed;
@@ -474,12 +455,12 @@ namespace Shared
 
         private void UpdateProjectiles(float deltaTime)
         {
-            // Mettre à jour tous les projectiles actifs
+            // Update all active projectiles
             for (int i = projectiles.Count - 1; i >= 0; i--)
             {
                 projectiles[i].Update(deltaTime);
-                
-                // Supprimer les projectiles inactifs
+
+                // Remove inactive projectiles
                 if (!projectiles[i].IsActive())
                 {
                     projectiles.RemoveAt(i);
@@ -488,12 +469,12 @@ namespace Shared
         }
 
         public void Render(RenderWindow window, Camera camera)
-        {   
-            DrawPlayerUi(window, camera); 
-            float offsetX = isFacingRight ? -5 : 5; // Décalage à droite si face à droite, sinon à gauche
-            sprite.Position = new Vector2f(playerPosition.X + offsetX, playerPosition.Y + 4); // Ajouter 4 pour le décalage vertical
+        {
+            DrawPlayerUi(window, camera);
+            float offsetX = isFacingRight ? -5 : 5; // Offset to the right if facing right, otherwise to the left
+            sprite.Position = new Vector2f(playerPosition.X + offsetX, playerPosition.Y); // Add 4 for vertical offset
             window.Draw(sprite);
-            // Dessiner tous les projectiles
+            // Draw all projectiles
             foreach (var projectile in projectiles)
             {
                 projectile.Draw(window);
@@ -512,8 +493,6 @@ namespace Shared
 
         private void UpdateSpriteOrientation()
         {
-            
-            
             if (!isFacingRight)
             {
                 sprite.Scale = new Vector2f(Math.Abs(sprite.Scale.X), sprite.Scale.Y);
@@ -522,45 +501,43 @@ namespace Shared
             {
                 sprite.Scale = new Vector2f(-Math.Abs(sprite.Scale.X), sprite.Scale.Y);
             }
-
-            
         }
 
-
-
-        private void UpdatePlayerUi(RenderWindow window){
+        private void UpdatePlayerUi(RenderWindow window)
+        {
             UpdateTextSize(window);
 
-            // Utiliser la vue UI pour le texte
+            // Use UI view for text
             View uiView = new View(new FloatRect(0, 0, window.Size.X, window.Size.Y));
             window.SetView(uiView);
 
-            // Calculer la position en pixels
+            // Calculate position in pixels
             float screenWidth = window.Size.X;
             float screenHeight = window.Size.Y;
-            
-            PlayerHealthUi.DisplayedString = health + "/" + maxHealth + " HP";
-            PlayerHealthUi.Position = new Vector2f(
-                screenWidth * 0.02f,
-                screenHeight * 0.95f
-            );
-            PlayerHealthUi.FillColor = Color.White;
-        } 
+
+            playerHealthUi.DisplayedString = health + "/" + maxHealth + " HP";
+            playerHealthUi.Position = new Vector2f(screenWidth * 0.02f, screenHeight * 0.95f);
+            playerHealthUi.FillColor = Color.White;
+        }
 
         private void DrawPlayerUi(RenderWindow window, Camera camera)
-        {   
+        {
             window.Draw(fpsText);
             window.Draw(playerPositionText);
-            window.Draw(playerVerticalSpeed);
-            window.Draw(PlayerHealthUi);
+            window.Draw(playerVerticalSpeedText);
+            window.Draw(playerHealthUi);
             window.SetView(camera.GetView());
         }
 
-        public Vector2f GetPosition(){
+        public Vector2f GetPosition()
+        {
             return playerPosition;
         }
 
-
-  
+        // Méthode pour mettre à jour la position du joueur
+        public void UpdatePosition(Vector2f newPosition)
+        {
+            playerPosition = newPosition;
+        }
     }
 }

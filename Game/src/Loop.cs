@@ -2,6 +2,9 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 using Shared;
+using System;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace src
 {
@@ -14,7 +17,7 @@ namespace src
         Multiplayer
     }
 
-    class Loop
+    public class Loop
     {
         private RenderWindow window;
         private Clock clock;
@@ -23,17 +26,18 @@ namespace src
         private State lastState = State.MainMenu;
 
         private Player? player;
-
         private bool firstEntryToGameLoop = true;
         private bool firstEntryToMainMenu = true;
         private Map? map;
 
+        private Client? udpClient;
+        private Dictionary<int, Player> otherPlayers = new Dictionary<int, Player>();
+
         public Loop()
         {
-            window = new RenderWindow(new VideoMode(1280, 720), "Ma fenêtre SFML");
+            window = new RenderWindow(new VideoMode(1280, 720), "My SFML Window");
             clock = new Clock();
             camera = new Camera(640, 360);
-           
 
             window.Closed += (sender, e) => window.Close();
             window.Resized += OnWindowResized;
@@ -41,9 +45,11 @@ namespace src
             window.GainedFocus += OnGainedFocus;
         }
 
-        private void OnGainedFocus(object? sender, EventArgs e)
+        private void OnWindowResized(object? sender, SizeEventArgs e)
         {
-             currentState = lastState;
+            GameLoop.ResizeCamera(camera);
+            Camera.ViewHeight = camera.GetHeight();
+            Camera.ViewWidth = camera.GetWidth();
         }
 
         private void OnLostFocus(object? sender, EventArgs e)
@@ -52,11 +58,9 @@ namespace src
             currentState = State.Paused;
         }
 
-        private void OnWindowResized(object? sender, SizeEventArgs e)
-        {   
-            GameLoop.ResizeCamera(camera);
-            Camera.ViewHeight = camera.GetHeight();
-            Camera.ViewWidth = camera.GetWidth();
+        private void OnGainedFocus(object? sender, EventArgs e)
+        {
+            currentState = lastState;
         }
 
         public void Run()
@@ -65,37 +69,50 @@ namespace src
             {
                 (player, map) = GameLoop.InitGameLoop();
             }
+
             currentState = State.MainMenu;
             while (window.IsOpen)
             {
                 float deltaTime = clock.Restart().AsSeconds();
-
                 window.DispatchEvents();
                 window.Clear();
 
                 switch (currentState)
                 {
                     case State.MainMenu:
-                        if (firstEntryToMainMenu){
+                        if (firstEntryToMainMenu)
+                        {
                             MainMenu.InitMainMenu();
-                            firstEntryToMainMenu  = false;
+                            firstEntryToMainMenu = false;
                             firstEntryToGameLoop = true;
                         }
                         currentState = MainMenu.RunMainMenu(window, deltaTime);
                         break;
+
                     case State.Playing:
-                        if (firstEntryToGameLoop){
+                        if (firstEntryToGameLoop)
+                        {
                             firstEntryToGameLoop = false;
                             firstEntryToMainMenu = true;
                             GameLoop.ResizeCamera(camera);
                         }
-                        currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera);
+                        currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers);
                         break;
-                    case State.Paused:
-                        // Handle Paused state
-                        break;
-                    case State.GameOver:
-                        // Handle GameOver state
+
+                    case State.Multiplayer:
+                        if (firstEntryToGameLoop)
+                        {
+                            firstEntryToGameLoop = false;
+                            firstEntryToMainMenu = false;
+                            GameLoop.ResizeCamera(camera);
+                            udpClient = new Client("127.0.0.1");
+                            Thread clientThread = new Thread(() => udpClient.Start(player));
+                            clientThread.IsBackground = true;
+                            clientThread.Start();
+                        }
+                        // Update other players from the client
+                        otherPlayers = udpClient?.GetOtherPlayers() ?? new Dictionary<int, Player>();
+                        currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers);
                         break;
                 }
 

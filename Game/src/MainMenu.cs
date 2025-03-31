@@ -162,8 +162,7 @@ namespace src
                     state =  State.Playing;
                     break;
                 case 1:
-                    Console.WriteLine("Multiplayer not implemented yet.");
-                    state = State.MainMenu;
+                    state = State.Multiplayer;
                     break;
                 case 2:
                     Environment.Exit(0);

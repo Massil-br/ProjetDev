@@ -2,64 +2,79 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text.Json;
-using System.Threading;
-using Shared;
+using System.Text;
+using SFML.System;
 
-namespace src
+public class Server
 {
-    public class Server
+    private UdpClient udpServer;
+    private IPEndPoint clientEndPoint;
+    private const int Port = 12345;
+    private int nextPlayerId = 1;
+    private Dictionary<int, Vector2f> players = new Dictionary<int, Vector2f>();
+    private Dictionary<int, IPEndPoint> playerEndPoints = new Dictionary<int, IPEndPoint>();
+
+    public Server()
     {
-        private TcpListener listener;
-        private List<TcpClient> clients = new List<TcpClient>();
+        udpServer = new UdpClient(Port);
+        clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        Console.WriteLine("UDP server started on port " + Port);
+    }
 
-        public Server(Ip ip)
+    public void Start()
+    {
+        while (true)
         {
-            listener = new TcpListener(IPAddress.Parse(ip.IpAddress), ip.Port);
-        }
-
-        public void Start()
-        {
-            listener.Start();
-            Console.WriteLine("Server started...");
-            while (true)
+            try
             {
-                TcpClient client = listener.AcceptTcpClient();
-                clients.Add(client);
-                Thread clientThread = new Thread(() => HandleClient(client));
-                clientThread.Start();
+                byte[] receivedData = udpServer.Receive(ref clientEndPoint);
+                string message = Encoding.UTF8.GetString(receivedData);
+                Console.WriteLine("Received message: " + message);
+
+                string[] parts = message.Split(':');
+                if (parts[0] == "REQUEST_ID")
+                {
+                    int assignedId = nextPlayerId++;
+                    byte[] idData = Encoding.UTF8.GetBytes(assignedId.ToString());
+                    udpServer.Send(idData, idData.Length, clientEndPoint);
+                    playerEndPoints[assignedId] = clientEndPoint;
+                    Console.WriteLine($"New player connected with ID {assignedId}");
+                }
+                else if (parts.Length == 3)
+                {
+                    if (int.TryParse(parts[0], out int playerId))
+                    {
+                        float x = float.Parse(parts[1]);
+                        float y = float.Parse(parts[2]);
+                        players[playerId] = new Vector2f(x, y);
+                    }
+                }
+
+                // Build a message with all positions
+                StringBuilder responseBuilder = new StringBuilder();
+                foreach (var kvp in players)
+                {
+                    responseBuilder.Append($"{kvp.Key}:{kvp.Value.X}:{kvp.Value.Y}|");
+                }
+
+                string responseMessage = responseBuilder.ToString().TrimEnd('|');
+                byte[] responseData = Encoding.UTF8.GetBytes(responseMessage);
+
+                // Send positions to all clients
+                foreach (var endPoint in playerEndPoints.Values)
+                {
+                    udpServer.Send(responseData, responseData.Length, endPoint);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
             }
         }
+    }
 
-        private void HandleClient(TcpClient client)
-        {
-            NetworkStream stream = client.GetStream();
-            while (true)
-            {
-                byte[] data = new byte[1024];
-                int bytesRead = stream.Read(data, 0, data.Length);
-                if (bytesRead == 0) break;
-
-                ServerPacket packet = ServerPacket.Deserialize(data.Take(bytesRead).ToArray());
-                BroadcastPacket(packet);
-            }
-            clients.Remove(client);
-            client.Close();
-        }
-
-        private void BroadcastPacket(ServerPacket packet)
-        {
-            byte[] data = packet.Serialize();
-            foreach (var client in clients)
-            {
-                NetworkStream stream = client.GetStream();
-                stream.Write(data, 0, data.Length);
-            }
-        }
-
-        public void Stop()
-        {
-            listener.Stop();
-        }
+    public void Stop()
+    {
+        udpServer.Close();
     }
 }
