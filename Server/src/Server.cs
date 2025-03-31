@@ -13,8 +13,8 @@ public class Server
     private int nextPlayerId = 1;
     private Dictionary<int, Vector2f> players = new Dictionary<int, Vector2f>();
     private Dictionary<int, IPEndPoint> playerEndPoints = new Dictionary<int, IPEndPoint>();
-    private Dictionary<int, string> playerSpriteStates = new Dictionary<int, string>();
-    private Dictionary<int, float> playerVerticalSpeeds = new Dictionary<int, float>();
+    private Dictionary<int, int> playerIntAnimation = new Dictionary<int, int>();
+    
 
     public Server()
     {
@@ -42,17 +42,17 @@ public class Server
                     playerEndPoints[assignedId] = clientEndPoint;
                     Console.WriteLine($"New player connected with ID {assignedId}");
                 }
-                else if (parts.Length == 5)
+                else if (parts.Length == 4)
                 {
                     if (int.TryParse(parts[0], out int playerId))
                     {
                         float x = float.Parse(parts[1]);
                         float y = float.Parse(parts[2]);
-                        string spriteState = parts[3];
-                        float verticalSpeed = float.Parse(parts[4]);
+                        int intAnimation = int.Parse(parts[3]);
+
+
                         players[playerId] = new Vector2f(x, y);
-                        playerSpriteStates[playerId] = spriteState;
-                        playerVerticalSpeeds[playerId] = verticalSpeed;
+                        playerIntAnimation[playerId]= intAnimation; 
                     }
                 }
 
@@ -60,7 +60,7 @@ public class Server
                 StringBuilder responseBuilder = new StringBuilder();
                 foreach (var kvp in players)
                 {
-                    responseBuilder.Append($"{kvp.Key}:{kvp.Value.X}:{kvp.Value.Y}:{playerSpriteStates[kvp.Key]}:{playerVerticalSpeeds[kvp.Key]}|");
+                    responseBuilder.Append($"{kvp.Key}:{kvp.Value.X}:{kvp.Value.Y}: {playerIntAnimation[kvp.Key]}|");
                 }
 
                 string responseMessage = responseBuilder.ToString().TrimEnd('|');

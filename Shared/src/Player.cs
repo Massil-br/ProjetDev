@@ -44,6 +44,8 @@ namespace Shared
         private Texture[] currentAnimation = [];
         private Texture[] previousAnimation = []; // To detect animation changes
 
+        private int intAnimation = 0;
+
         private bool isFacingRight = true;
 
         // Rendering
@@ -162,7 +164,7 @@ namespace Shared
             UpdateProjectiles(deltaTime);
             UpdatePlayerUi(window);
             PlayerAnimation(deltaTime);
-            Debug(deltaTime, window);
+            
             Render(window, camera);
         }
 
@@ -319,7 +321,7 @@ namespace Shared
             }
         }
 
-        private void Debug(float deltaTime, RenderWindow window)
+        public void Debug(float deltaTime, RenderWindow window)
         {
             fpsTimer += deltaTime;
             frameCount++;
@@ -359,6 +361,7 @@ namespace Shared
             if (!isAlive)
             {
                 currentAnimation = deadSpriteList;
+                intAnimation = 29;
             }
             else if (verticalSpeed != 0)
             {
@@ -367,10 +370,12 @@ namespace Shared
             else if (Keyboard.IsKeyPressed(Keyboard.Key.Q) || Keyboard.IsKeyPressed(Keyboard.Key.D))
             {
                 currentAnimation = runSpriteList;
+                intAnimation = 11;
             }
             else
             {
                 currentAnimation = idleSpriteList;
+                intAnimation = 0;
             }
 
             // Reset frame if animation has changed
@@ -378,6 +383,7 @@ namespace Shared
             {
                 currentFrame = 0;
                 previousAnimation = currentAnimation;
+
             }
 
             // Play appropriate animation
@@ -412,6 +418,7 @@ namespace Shared
                 }
             }
             sprite.Texture = currentAnimation[currentFrame];
+            intAnimation += currentFrame;
         }
 
         private void PlayJumpAnimation()
@@ -421,10 +428,13 @@ namespace Shared
             if (verticalSpeed < 0)
             {
                 sprite.Texture = jumpSpriteList[0];
+                intAnimation = 21;
+                
             }
             else if (verticalSpeed > 0)
             {
                 sprite.Texture = jumpSpriteList[1];
+                intAnimation = 22;
             }
         }
 
@@ -472,7 +482,7 @@ namespace Shared
 
         public void Render(RenderWindow window, Camera camera)
         {
-            DrawPlayerUi(window, camera);
+            
             float offsetX = isFacingRight ? -5 : 5; // Offset to the right if facing right, otherwise to the left
             sprite.Position = new Vector2f(playerPosition.X + offsetX, playerPosition.Y); // Add 4 for vertical offset
             window.Draw(sprite);
@@ -489,9 +499,9 @@ namespace Shared
         public void SetVerticalSpeed(float verticalSpeed){
             this.verticalSpeed = verticalSpeed;
         }
-        public Sprite GetSprite()
+        public Texture GetSpriteTexture()
         {
-            return sprite;
+            return sprite.Texture;
         }
 
         public string GetName()
@@ -528,7 +538,7 @@ namespace Shared
             playerHealthUi.FillColor = Color.White;
         }
 
-        private void DrawPlayerUi(RenderWindow window, Camera camera)
+        public  void DrawPlayerUi(RenderWindow window, Camera camera)
         {
             window.Draw(fpsText);
             window.Draw(playerPositionText);
@@ -542,37 +552,13 @@ namespace Shared
             return playerPosition;
         }
 
-        public string GetSpriteState()
-        {
-            // Return the current state of the sprite (e.g., idle, running, jumping)
-            return currentAnimation == idleSpriteList ? "idle" :
-                currentAnimation == runSpriteList ? "running" :
-                currentAnimation == jumpSpriteList ? "jumping" :
-                currentAnimation == deadSpriteList ? "dead":
-                "idle"; // Default to idle
+        public int GetIntAnimation(){
+            return intAnimation;
         }
 
-        public void SetSpriteState(string state)
-        {
-            // Set the sprite state based on the received state
-            switch (state)
-            {
-                case "idle":
-                    currentAnimation = idleSpriteList;
-                    break;
-                case "running":
-                    currentAnimation = runSpriteList;
-                    break;
-                case "jumping":
-                    currentAnimation = jumpSpriteList;
-                    break;
-                default:
-                    currentAnimation = idleSpriteList;
-                    break;
-            }
-            currentFrame = 0; // Reset the frame
+        public void SetSpriteTexture(int intAnimation){
+            sprite.Texture = TextureManager.textures[intAnimation];
         }
-
 
         // Méthode pour mettre à jour la position du joueur
         public void UpdatePosition(Vector2f newPosition)

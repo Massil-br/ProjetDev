@@ -54,7 +54,7 @@ public class Client
 
     private void SendPlayerInfo(Player player)
     {
-        string message = $"{playerId}:{player.GetPosition().X}:{player.GetPosition().Y} : {player.GetSpriteState()} : {player.GetVerticalSpeed()}";
+        string message = $"{playerId}:{player.GetPosition().X}:{player.GetPosition().Y}  : {player.GetIntAnimation()}";
         byte[] sendData = Encoding.UTF8.GetBytes(message);
         udpClient.Send(sendData, sendData.Length, serverEndPoint);
     }
@@ -88,13 +88,13 @@ public class Client
         foreach (string playerData in playersData)
         {
             string[] parts = playerData.Split(':');
-            if (parts.Length == 5)
+            if (parts.Length == 4)
             {
                 string id = parts[0];
                 float x = float.Parse(parts[1]);
                 float y = float.Parse(parts[2]);
-                string spriteState = parts[3];
-                float verticalSpeed = float.Parse(parts[4]);
+                int intAnimation = int.Parse(parts[3]);
+                
 
                 if (id != playerId) // Do not update our own position
                 {
@@ -105,7 +105,8 @@ public class Client
                         otherPlayers[playerIdInt] = new Player("OtherPlayer", 100, 10);
                     }
                     otherPlayers[playerIdInt].UpdatePosition(new Vector2f(x, y));
-                    player.SetSpriteState(spriteState);
+                    otherPlayers[playerIdInt].SetSpriteTexture(intAnimation);
+                    
                 }
             }
         }
