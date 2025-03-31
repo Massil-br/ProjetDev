@@ -106,8 +106,9 @@ public class Client
                         otherPlayers[playerIdInt] = new Player("OtherPlayer", 100, 10);
                     }
                     otherPlayers[playerIdInt].UpdatePosition(new Vector2f(x, y));
-                    otherPlayers[playerIdInt].SetSpriteTexture(intAnimation);
                     otherPlayers[playerIdInt].SetFacing(isFacingRight);
+                    otherPlayers[playerIdInt].SetSpriteTexture(intAnimation);
+                    
                 }
             }
         }

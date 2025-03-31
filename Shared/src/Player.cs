@@ -46,7 +46,7 @@ namespace Shared
 
         private int intAnimation = 0;
 
-        private bool isFacingRight = true;
+        private bool isFacingRight ;
 
         // Rendering
         private Texture texture;
