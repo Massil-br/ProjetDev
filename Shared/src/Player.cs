@@ -267,35 +267,7 @@ namespace Shared
             return tileType;
         }
 
-        public string GetSpriteState()
-        {
-            // Return the current state of the sprite (e.g., idle, running, jumping)
-            return currentAnimation == idleSpriteList ? "idle" :
-                currentAnimation == runSpriteList ? "running" :
-                currentAnimation == jumpSpriteList ? "jumping" :
-                "idle"; // Default to idle
-        }
-
-        public void SetSpriteState(string state)
-        {
-            // Set the sprite state based on the received state
-            switch (state)
-            {
-                case "idle":
-                    currentAnimation = idleSpriteList;
-                    break;
-                case "running":
-                    currentAnimation = runSpriteList;
-                    break;
-                case "jumping":
-                    currentAnimation = jumpSpriteList;
-                    break;
-                default:
-                    currentAnimation = idleSpriteList;
-                    break;
-            }
-            currentFrame = 0; // Reset the frame
-        }
+        
 
         private void CheckHealth()
         {
@@ -511,6 +483,12 @@ namespace Shared
             }
         }
 
+        public float GetVerticalSpeed(){
+            return this.verticalSpeed;
+            }
+        public void SetVerticalSpeed(float verticalSpeed){
+            this.verticalSpeed = verticalSpeed;
+        }
         public Sprite GetSprite()
         {
             return sprite;
@@ -563,6 +541,38 @@ namespace Shared
         {
             return playerPosition;
         }
+
+        public string GetSpriteState()
+        {
+            // Return the current state of the sprite (e.g., idle, running, jumping)
+            return currentAnimation == idleSpriteList ? "idle" :
+                currentAnimation == runSpriteList ? "running" :
+                currentAnimation == jumpSpriteList ? "jumping" :
+                currentAnimation == deadSpriteList ? "dead":
+                "idle"; // Default to idle
+        }
+
+        public void SetSpriteState(string state)
+        {
+            // Set the sprite state based on the received state
+            switch (state)
+            {
+                case "idle":
+                    currentAnimation = idleSpriteList;
+                    break;
+                case "running":
+                    currentAnimation = runSpriteList;
+                    break;
+                case "jumping":
+                    currentAnimation = jumpSpriteList;
+                    break;
+                default:
+                    currentAnimation = idleSpriteList;
+                    break;
+            }
+            currentFrame = 0; // Reset the frame
+        }
+
 
         // Méthode pour mettre à jour la position du joueur
         public void UpdatePosition(Vector2f newPosition)
