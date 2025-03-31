@@ -47,14 +47,14 @@ public class Client
 
         while (true)
         {
-            SendPlayerPosition(player);
+            SendPlayerInfo(player);
             Thread.Sleep(10); // Send position every 100ms
         }
     }
 
-    private void SendPlayerPosition(Player player)
+    private void SendPlayerInfo(Player player)
     {
-        string message = $"{playerId}:{player.GetPosition().X}:{player.GetPosition().Y}";
+        string message = $"{playerId}:{player.GetPosition().X}:{player.GetPosition().Y} : {player.GetSpriteState()}";
         byte[] sendData = Encoding.UTF8.GetBytes(message);
         udpClient.Send(sendData, sendData.Length, serverEndPoint);
     }

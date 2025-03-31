@@ -267,6 +267,36 @@ namespace Shared
             return tileType;
         }
 
+        public string GetSpriteState()
+        {
+            // Return the current state of the sprite (e.g., idle, running, jumping)
+            return currentAnimation == idleSpriteList ? "idle" :
+                currentAnimation == runSpriteList ? "running" :
+                currentAnimation == jumpSpriteList ? "jumping" :
+                "idle"; // Default to idle
+        }
+
+        public void SetSpriteState(string state)
+        {
+            // Set the sprite state based on the received state
+            switch (state)
+            {
+                case "idle":
+                    currentAnimation = idleSpriteList;
+                    break;
+                case "running":
+                    currentAnimation = runSpriteList;
+                    break;
+                case "jumping":
+                    currentAnimation = jumpSpriteList;
+                    break;
+                default:
+                    currentAnimation = idleSpriteList;
+                    break;
+            }
+            currentFrame = 0; // Reset the frame
+        }
+
         private void CheckHealth()
         {
             if (isAlive)

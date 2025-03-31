@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using SFML.Graphics;
 using SFML.System;
 
 public class Server
@@ -40,13 +41,14 @@ public class Server
                     playerEndPoints[assignedId] = clientEndPoint;
                     Console.WriteLine($"New player connected with ID {assignedId}");
                 }
-                else if (parts.Length == 3)
+                else if (parts.Length == 4)
                 {
                     if (int.TryParse(parts[0], out int playerId))
                     {
                         float x = float.Parse(parts[1]);
                         float y = float.Parse(parts[2]);
                         players[playerId] = new Vector2f(x, y);
+                        string spriteState = parts[3];
                     }
                 }
 
@@ -72,6 +74,8 @@ public class Server
             }
         }
     }
+
+    
 
     public void Stop()
     {
