@@ -24,13 +24,21 @@ public class Client
 
     private string RequestPlayerId()
     {
-        byte[] requestData = Encoding.UTF8.GetBytes("REQUEST_ID");
-        udpClient.Send(requestData, requestData.Length, serverEndPoint);
-        IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
-        byte[] receivedData = udpClient.Receive(ref remoteEP);
-        playerId = Encoding.UTF8.GetString(receivedData);
-        Console.WriteLine($"Received ID from server: {playerId}");
-        return playerId;
+        try
+        {
+            byte[] requestData = Encoding.UTF8.GetBytes("REQUEST_ID");
+            udpClient.Send(requestData, requestData.Length, serverEndPoint);
+            IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
+            byte[] receivedData = udpClient.Receive(ref remoteEP);
+            playerId = Encoding.UTF8.GetString(receivedData);
+            Console.WriteLine($"Received ID from server: {playerId}");
+            return playerId;
+        }
+        catch (SocketException ex)
+        {
+            Console.WriteLine($"SocketException: {ex.Message}");
+            throw;
+        }
     }
 
     public void Start(Player player)
@@ -62,6 +70,10 @@ public class Client
                 string response = Encoding.UTF8.GetString(receivedData);
                 Console.WriteLine($"Position update: {response}");
                 ProcessServerData(response, player);
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine($"SocketException: {ex.Message}");
             }
             catch (Exception ex)
             {
