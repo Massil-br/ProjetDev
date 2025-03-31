@@ -88,11 +88,12 @@ public class Client
         foreach (string playerData in playersData)
         {
             string[] parts = playerData.Split(':');
-            if (parts.Length == 3)
+            if (parts.Length == 4)
             {
                 string id = parts[0];
                 float x = float.Parse(parts[1]);
                 float y = float.Parse(parts[2]);
+                string spriteState = parts[3];
 
                 if (id != playerId) // Do not update our own position
                 {
@@ -103,6 +104,7 @@ public class Client
                         otherPlayers[playerIdInt] = new Player("OtherPlayer", 100, 10);
                     }
                     otherPlayers[playerIdInt].UpdatePosition(new Vector2f(x, y));
+                    player.SetSpriteState(spriteState);
                 }
             }
         }
