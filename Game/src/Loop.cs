@@ -4,6 +4,7 @@ using SFML.Window;
 using Shared;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace src
@@ -18,7 +19,8 @@ namespace src
     }
 
     public class Loop
-    {
+    {   
+        const string ServerIp = "127.0.0.1";
         private RenderWindow window;
         private Clock clock;
         private Camera camera;
@@ -105,7 +107,7 @@ namespace src
                             firstEntryToGameLoop = false;
                             firstEntryToMainMenu = false;
                             GameLoop.ResizeCamera(camera);
-                            udpClient = new Client("192.168.1.44");
+                            udpClient = new Client(ServerIp);
                             Thread clientThread = new Thread(() => udpClient.Start(player));
                             clientThread.IsBackground = true;
                             clientThread.Start();

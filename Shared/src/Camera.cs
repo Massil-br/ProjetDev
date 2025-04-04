@@ -23,6 +23,9 @@ namespace Shared
             view.Size = new Vector2f(width ,height);
         }
 
+
+      
+
         public float GetWidth(){
             return view.Size.X;
         }

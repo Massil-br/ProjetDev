@@ -195,7 +195,13 @@ namespace Shared
         }
 
         private void HandleInput(float deltaTime, Map map)
-        {
+        {   
+            if(Keyboard.IsKeyPressed(Keyboard.Key.E)){
+                isAlive = false;
+            }
+             if(Keyboard.IsKeyPressed(Keyboard.Key.R)){
+                isAlive = true;
+            }
             if (!isAlive) return;
 
             if (fallGraceTimer > 0)
@@ -204,6 +210,8 @@ namespace Shared
             }
 
             Vector2f movement = new(0, 0);
+            
+
 
             // Handle jump
             if (Keyboard.IsKeyPressed(Keyboard.Key.Z) && (TileOnGround(map) == 1 || fallGraceTimer > 0))
@@ -481,7 +489,7 @@ namespace Shared
 
         public void Render(RenderWindow window, Camera camera)
         {
-            
+            UpdateSpriteOrientation();
             float offsetX = isFacingRight ? -5 : 5; // Offset to the right if facing right, otherwise to the left
             sprite.Position = new Vector2f(playerPosition.X + offsetX, playerPosition.Y); // Add 4 for vertical offset
             window.Draw(sprite);
@@ -491,6 +499,8 @@ namespace Shared
                 projectile.Draw(window);
             }
         }
+
+
 
         public float GetVerticalSpeed(){
             return this.verticalSpeed;
