@@ -4,8 +4,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using SFML.System;
+namespace src;
 
-public class Server
+public class UDPServer
 {
     private UdpClient udpServer;
     private IPEndPoint clientEndPoint;
@@ -17,7 +18,7 @@ public class Server
     private Dictionary<int, bool> playerFacing = new Dictionary<int, bool>();
     
 
-    public Server()
+    public UDPServer()
     {
         udpServer = new UdpClient(Port);
         clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
@@ -63,7 +64,7 @@ public class Server
                 StringBuilder responseBuilder = new StringBuilder();
                 foreach (var kvp in players)
                 {
-                    responseBuilder.Append($"{kvp.Key}:{kvp.Value.X}:{kvp.Value.Y}: {playerIntAnimation[kvp.Key]} : {playerFacing[kvp.Key]}|");
+                    responseBuilder.Append($"{kvp.Key}:{kvp.Value.X}:{kvp.Value.Y}:{playerIntAnimation[kvp.Key]}:{playerFacing[kvp.Key]}|");
                 }
 
                 string responseMessage = responseBuilder.ToString().TrimEnd('|');

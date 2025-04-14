@@ -8,7 +8,9 @@ using System.Collections.Generic;
 using SFML.System;
 
 public class Client
-{
+{   
+
+     private static readonly HttpClient client = new HttpClient();
     private UdpClient udpClient;
     private IPEndPoint serverEndPoint;
     private const int Port = 12345;

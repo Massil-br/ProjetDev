@@ -7,7 +7,15 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- Copier tous les fichiers du répertoire src dans le répertoire de sortie -->
   <ItemGroup>
+    <None Update="src\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="SFML.Net" Version="2.6.1" />
   </ItemGroup>
   <ItemGroup>

@@ -2,6 +2,7 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 using System.Collections.Generic;
+using System.Threading.Channels;
 
 namespace Shared
 {
@@ -258,16 +259,19 @@ namespace Shared
         }
 
         private int TileOnGround(Map map)
-        {
-            // Create a collision area that takes into account the centered origin
-            FloatRect bounds = new FloatRect(
-                playerPosition.X - 1, // Move the bounds to the center horizontally
-                playerPosition.Y + sprite.GetGlobalBounds().Height / 2, // Move the bounds down to check collision with the ground
-                2, // Reduce width to check only the center
-                1  // Reduce height to check only the bottom
-            );
+        {   
 
-            int tileType = map.IsColliding(bounds);
+
+            
+            // // Create a collision area that takes into account the centered origin
+            // FloatRect bounds = new FloatRect(
+            //     playerPosition.X - 1, // Move the bounds to the center horizontally
+            //     playerPosition.Y + sprite.GetGlobalBounds().Height / 2, // Move the bounds down to check collision with the ground
+            //     2, // Reduce width to check only the center
+            //     1  // Reduce height to check only the bottom
+            // );
+
+            int tileType = map.IsColliding(hitbox);
             if (tileType == 1)
             {
                 fallGraceTimer = fallGracePeriod; // Reset fall grace timer

@@ -1,11 +1,15 @@
 ﻿
 
 
- class Program{
+using System.Threading.Tasks;
 
-    public static void Main(){
-        Server server = new();
-        server.Start();
+class Program{
+
+    public static async Task Main(){
+        var database = Database.GetInstance();
+        HttpServer httpsServer = new(database);
+        await httpsServer.StartAsync();
+
     }
 
 
