@@ -31,6 +31,7 @@ namespace src
         private bool firstEntryToGameLoop = true;
         private bool firstEntryToMainMenu = true;
         private Map? map;
+        Thread? clientThread;
 
         private Client? udpClient;
         private Dictionary<int, Player> otherPlayers = new Dictionary<int, Player>();
@@ -40,6 +41,7 @@ namespace src
             window = new RenderWindow(new VideoMode(1280, 720), "My SFML Window");
             clock = new Clock();
             camera = new Camera(640, 360);
+
 
             window.Closed += (sender, e) => window.Close();
             window.Resized += OnWindowResized;
@@ -108,7 +110,7 @@ namespace src
                             firstEntryToMainMenu = false;
                             GameLoop.ResizeCamera(camera);
                             udpClient = new Client(ServerIp);
-                            Thread clientThread = new Thread(() => udpClient.Start(player));
+                            clientThread = new Thread(() => udpClient.Start(player));
                             clientThread.IsBackground = true;
                             clientThread.Start();
                         }
@@ -120,6 +122,8 @@ namespace src
 
                 window.Display();
             }
+            clientThread?.Interrupt();
+
         }
     }
 }

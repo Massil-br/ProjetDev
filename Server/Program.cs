@@ -2,14 +2,18 @@
 
 
 using System.Threading.Tasks;
+using src;
 
 class Program{
 
     public static async Task Main(){
         var database = Database.GetInstance();
         HttpServer httpsServer = new(database);
-        await httpsServer.StartAsync();
-
+        UDPServer udpServer = new();
+        Task httpTask = httpsServer.StartAsync();
+        Task udpTask = Task.Run(() => udpServer.Start());
+        await Task.WhenAll(httpTask, udpTask);
+        
     }
 
 
