@@ -20,7 +20,7 @@ namespace src
 
     public class Loop
     {   
-        const string ServerIp = "172.20.10.8";
+        const string ServerIp = "192.168.1.90";
         private RenderWindow window;
         private Clock clock;
         private Camera camera;

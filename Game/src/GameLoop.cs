@@ -39,11 +39,11 @@ namespace src
             // Draw other players
             foreach (var otherPlayer in otherPlayers.Values)
             {
-                otherPlayer.Render(window, camera);
+                otherPlayer.Render(window, deltaTime);
             }
             
             // Draw the main player
-            player.Render(window, camera);
+            player.Render(window, deltaTime);
            
 
             return State.Playing;

@@ -56,7 +56,7 @@ public class Client
 
     private void SendPlayerInfo(Player player)
     {
-        string message = $"{playerId}:{player.GetPosition().X}:{player.GetPosition().Y}  : {player.GetIntAnimation()} : {player.IsFacingRight()} : {player.GetVerticalSpeed()}";
+        string message = $"{playerId}:{player.GetPosition().X}:{player.GetPosition().Y}  : {player.GetAnimationState()} : {player.IsFacingRight()} : {player.GetVerticalSpeed()}";
         byte[] sendData = Encoding.UTF8.GetBytes(message);
         udpClient.Send(sendData, sendData.Length, serverEndPoint);
     }
@@ -95,7 +95,7 @@ public class Client
                 string id = parts[0];
                 float x = float.Parse(parts[1]);
                 float y = float.Parse(parts[2]);
-                int intAnimation = int.Parse(parts[3]);
+                Animation anim = Enum.Parse<Animation>(parts[3]);
                 bool isFacingRight = bool.Parse(parts[4]);
                 float verticalSpeed = float.Parse(parts[5]);
                 
@@ -110,7 +110,7 @@ public class Client
                     }
                     otherPlayers[playerIdInt].UpdatePosition(new Vector2f(x, y));
                     otherPlayers[playerIdInt].SetFacing(isFacingRight);
-                    otherPlayers[playerIdInt].SetSpriteTexture(intAnimation);
+                    otherPlayers[playerIdInt].SetAnimationState(anim);
                     otherPlayers[playerIdInt].SetVerticalSpeed(verticalSpeed);
                     
                 }
