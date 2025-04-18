@@ -22,8 +22,8 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
-src/certs
-EXE/src/certs
+src/certs/
+EXE/
 # .NET Core
 project.lock.json
 project.fragment.lock.json
