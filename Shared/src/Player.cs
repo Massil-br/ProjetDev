@@ -579,6 +579,9 @@ namespace Shared
         public Vector2f GetPlayerMovement(){
             return movement;
         }
+        public void SetPlayerMovement(Vector2f movement){
+            this.movement = movement;
+        }
 
         public void SetAnimationState(Animation anim){
             switch (anim){

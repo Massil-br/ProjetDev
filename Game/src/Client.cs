@@ -91,7 +91,7 @@ public class Client
         foreach (string playerData in playersData)
         {
             string[] parts = playerData.Split(':');
-            if (parts.Length == 6)
+            if (parts.Length == 8)
             {
                 string id = parts[0];
                 float x = float.Parse(parts[1]);
@@ -99,6 +99,8 @@ public class Client
                 Animation anim = Enum.Parse<Animation>(parts[3]);
                 bool isFacingRight = bool.Parse(parts[4]);
                 float verticalSpeed = float.Parse(parts[5]);
+                float playermovementX = float.Parse(parts[6]);
+                float playermovementY =float.Parse(parts[7]);
                 
 
                 if (id != playerId) // Do not update our own position
@@ -113,7 +115,7 @@ public class Client
                     otherPlayers[playerIdInt].SetFacing(isFacingRight);
                     otherPlayers[playerIdInt].SetAnimationState(anim);
                     otherPlayers[playerIdInt].SetVerticalSpeed(verticalSpeed);
-                    
+                    otherPlayers[playerIdInt].SetPlayerMovement(new Vector2f(playermovementX, playermovementY));
                 }
             }
         }
