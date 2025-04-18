@@ -56,7 +56,7 @@ public class Client
 
     private void SendPlayerInfo(Player player)
     {
-        string message = $"{playerId}:{player.GetPosition().X}:{player.GetPosition().Y}  : {player.GetIntAnimation()} : {player.IsFacingRight()}";
+        string message = $"{playerId}:{player.GetPosition().X}:{player.GetPosition().Y}  : {player.GetIntAnimation()} : {player.IsFacingRight()} : {player.GetVerticalSpeed()}";
         byte[] sendData = Encoding.UTF8.GetBytes(message);
         udpClient.Send(sendData, sendData.Length, serverEndPoint);
     }
