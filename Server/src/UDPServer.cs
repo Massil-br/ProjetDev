@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Numerics;
 using System.Text;
 using SFML.System;
 using Shared;
@@ -18,6 +19,7 @@ public class UDPServer
     private Dictionary<int, Animation> playerAnimationState = new Dictionary<int, Animation>();
     private Dictionary<int, bool> playerFacing = new Dictionary<int, bool>();
     private Dictionary<int, float> playerVerticalSpeed = new();
+    private Dictionary<int, Vector2f>playerMovement= new();
     
 
     public UDPServer()
@@ -46,7 +48,7 @@ public class UDPServer
                     playerEndPoints[assignedId] = clientEndPoint;
                     Console.WriteLine($"New player connected with ID {assignedId}");
                 }
-                else if (parts.Length == 6)
+                else if (parts.Length == 8)
                 {
                     if (int.TryParse(parts[0], out int playerId))
                     {
@@ -55,12 +57,15 @@ public class UDPServer
                         Animation anim = Enum.Parse<Animation>(parts[3]);
                         bool isFacingRight = bool.Parse(parts[4]);
                         float verticalSpeed = float.Parse(parts[5]);
+                        float playermovementX = float.Parse(parts[6]);
+                        float playermovementY =float.Parse(parts[7]);
 
 
                         players[playerId] = new Vector2f(x, y);
                         playerAnimationState[playerId]= anim;
                         playerFacing[playerId]= isFacingRight;
                         playerVerticalSpeed[playerId] = verticalSpeed;
+                        playerMovement[playerId] = new Vector2f(playermovementX, playermovementY);
                     }
                 }
 
@@ -68,7 +73,9 @@ public class UDPServer
                 StringBuilder responseBuilder = new StringBuilder();
                 foreach (var kvp in players)
                 {
-                    responseBuilder.Append($"{kvp.Key}:{kvp.Value.X}:{kvp.Value.Y}:{playerAnimationState[kvp.Key]}:{playerFacing[kvp.Key]}:{playerVerticalSpeed[kvp.Key]}|");
+                    responseBuilder.Append($"{kvp.Key}:{kvp.Value.X}:{kvp.Value.Y}:{ 
+                        playerAnimationState[kvp.Key]}:{playerFacing[kvp.Key]}:{ 
+                        playerVerticalSpeed[kvp.Key]}: {playerMovement[kvp.Key].X}: {playerMovement[kvp.Key].Y}|");
                 }
 
                 string responseMessage = responseBuilder.ToString().TrimEnd('|');

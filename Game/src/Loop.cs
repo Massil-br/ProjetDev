@@ -20,7 +20,8 @@ namespace src
 
     public class Loop
     {   
-        const string ServerIp = "192.168.1.90";
+        const string ServerIp = "";
+        const int Port = 49153;
         private RenderWindow window;
         private Clock clock;
         private Camera camera;
@@ -109,7 +110,7 @@ namespace src
                             firstEntryToGameLoop = false;
                             firstEntryToMainMenu = false;
                             GameLoop.ResizeCamera(camera);
-                            udpClient = new Client(ServerIp);
+                            udpClient = new Client(ServerIp, Port);
                             clientThread = new Thread(() => udpClient.Start(player));
                             clientThread.IsBackground = true;
                             clientThread.Start();

@@ -21,6 +21,7 @@ public class HttpServer
     {   
         this.database =Database.GetInstance();
         string ip = GetLocalIPAddress();
+        Console.WriteLine("IP détectée : " + ip);
         string prefix = $"https://{ip}:{port}/";
         serverIp = prefix;
 
@@ -29,23 +30,30 @@ public class HttpServer
     }
 
 
-    private string GetLocalIPAddress()
+   private string GetLocalIPAddress()
     {
-        // Récupère la première adresse IP IPv4 de l'interface réseau
-        string localIP = "localhost"; // Valeur par défaut si on ne trouve pas d'IP valide
         foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
         {
-            foreach (var ipAddress in networkInterface.GetIPProperties().UnicastAddresses)
+            if (networkInterface.OperationalStatus != OperationalStatus.Up)
+                continue;
+
+            var props = networkInterface.GetIPProperties();
+
+            foreach (var address in props.UnicastAddresses)
             {
-                if (ipAddress.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(ipAddress.Address))
+                var ip = address.Address;
+                if (ip.AddressFamily == AddressFamily.InterNetwork &&
+                    !IPAddress.IsLoopback(ip) &&
+                    !ip.ToString().StartsWith("169.254")) // Évite APIPA
                 {
-                    localIP = ipAddress.Address.ToString();
-                    break;
+                    return ip.ToString();
                 }
             }
         }
-        return localIP;
+
+        return "localhost"; // fallback
     }
+
 
     public async Task StartAsync(){
          try

@@ -576,6 +576,10 @@ namespace Shared
             return anim;
         }
 
+        public Vector2f GetPlayerMovement(){
+            return movement;
+        }
+
         public void SetAnimationState(Animation anim){
             switch (anim){
                 case Animation.dead:

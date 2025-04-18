@@ -13,11 +13,11 @@ public class Client
      private static readonly HttpClient client = new HttpClient();
     private UdpClient udpClient;
     private IPEndPoint serverEndPoint;
-    private const int Port = 12345;
+
     private string playerId;
     private Dictionary<int, Player> otherPlayers = new Dictionary<int, Player>();
 
-    public Client(string serverIp)
+    public Client(string serverIp, int Port)
     {
         udpClient = new UdpClient();
         serverEndPoint = new IPEndPoint(IPAddress.Parse(serverIp), Port);
@@ -56,7 +56,8 @@ public class Client
 
     private void SendPlayerInfo(Player player)
     {
-        string message = $"{playerId}:{player.GetPosition().X}:{player.GetPosition().Y}  : {player.GetAnimationState()} : {player.IsFacingRight()} : {player.GetVerticalSpeed()}";
+        string message = $"{playerId}:{player.GetPosition().X}:{player.GetPosition().Y}  : {player.GetAnimationState()} : { 
+            player.IsFacingRight()} : {player.GetVerticalSpeed()}: {player.GetPlayerMovement().X}:{player.GetPlayerMovement().Y}";
         byte[] sendData = Encoding.UTF8.GetBytes(message);
         udpClient.Send(sendData, sendData.Length, serverEndPoint);
     }
