@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using SFML.System;
+using Shared;
 namespace src;
 
 public class UDPServer
@@ -14,7 +15,7 @@ public class UDPServer
     private int nextPlayerId = 1;
     private Dictionary<int, Vector2f> players = new Dictionary<int, Vector2f>();
     private Dictionary<int, IPEndPoint> playerEndPoints = new Dictionary<int, IPEndPoint>();
-    private Dictionary<int, int> playerIntAnimation = new Dictionary<int, int>();
+    private Dictionary<int, Animation> playerAnimationState = new Dictionary<int, Animation>();
     private Dictionary<int, bool> playerFacing = new Dictionary<int, bool>();
     private Dictionary<int, float> playerVerticalSpeed = new();
     
@@ -51,13 +52,13 @@ public class UDPServer
                     {
                         float x = float.Parse(parts[1]);
                         float y = float.Parse(parts[2]);
-                        int intAnimation = int.Parse(parts[3]);
+                        Animation anim = Enum.Parse<Animation>(parts[3]);
                         bool isFacingRight = bool.Parse(parts[4]);
                         float verticalSpeed = float.Parse(parts[5]);
 
 
                         players[playerId] = new Vector2f(x, y);
-                        playerIntAnimation[playerId]= intAnimation;
+                        playerAnimationState[playerId]= anim;
                         playerFacing[playerId]= isFacingRight;
                         playerVerticalSpeed[playerId] = verticalSpeed;
                     }
@@ -67,7 +68,7 @@ public class UDPServer
                 StringBuilder responseBuilder = new StringBuilder();
                 foreach (var kvp in players)
                 {
-                    responseBuilder.Append($"{kvp.Key}:{kvp.Value.X}:{kvp.Value.Y}:{playerIntAnimation[kvp.Key]}:{playerFacing[kvp.Key]}:{playerVerticalSpeed[kvp.Key]}|");
+                    responseBuilder.Append($"{kvp.Key}:{kvp.Value.X}:{kvp.Value.Y}:{playerAnimationState[kvp.Key]}:{playerFacing[kvp.Key]}:{playerVerticalSpeed[kvp.Key]}|");
                 }
 
                 string responseMessage = responseBuilder.ToString().TrimEnd('|');

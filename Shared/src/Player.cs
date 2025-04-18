@@ -17,6 +17,7 @@ namespace Shared
         private float speed = 100.0f * 1.3f;
         private float jumpForce = 300f;
         private FloatRect hitbox;
+        Vector2f movement = new (0,0);
 
         // Shooting projectiles
         private List<Projectile> projectiles = new();
@@ -45,7 +46,7 @@ namespace Shared
         private Texture[] currentAnimation = [];
         private Texture[] previousAnimation = []; // To detect animation changes
 
-        private int intAnimation = 0;
+        private Animation anim = Animation.idle;
 
         private bool isFacingRight ;
 
@@ -163,10 +164,11 @@ namespace Shared
             ApplyGravity(deltaTime, map);
             HandleShooting(window, deltaTime, camera, map);
             UpdateProjectiles(deltaTime);
-            PlayerAnimation(deltaTime);
             
-            Render(window, camera);
+            
+            //Render(window, deltaTime);
         }
+        
 
         private void ApplyGravity(float deltaTime, Map map)
         {
@@ -210,7 +212,7 @@ namespace Shared
                 fallGraceTimer -= deltaTime;
             }
 
-            Vector2f movement = new(0, 0);
+            movement = (0, 0);
             
 
 
@@ -372,20 +374,22 @@ namespace Shared
             if (!isAlive)
             {
                 currentAnimation = deadSpriteList;
-                intAnimation = 29;
+                anim = Animation.dead;
             }
             else if (verticalSpeed != 0)
             {
                 currentAnimation = jumpSpriteList;
+                anim = Animation.jump;
             }
-            else if (Keyboard.IsKeyPressed(Keyboard.Key.Q) || Keyboard.IsKeyPressed(Keyboard.Key.D))
+            else if (movement != new Vector2f(0,0))
             {
                 currentAnimation = runSpriteList;
-                intAnimation = 11;
+                anim = Animation.run;
             }
             else
             {
                 currentAnimation = idleSpriteList;
+                anim = Animation.idle;
             }
 
             // Reset frame if animation has changed
@@ -428,7 +432,6 @@ namespace Shared
                 }
             }
             sprite.Texture = currentAnimation[currentFrame];
-            intAnimation += currentFrame;
         }
 
         private void PlayJumpAnimation()
@@ -437,14 +440,11 @@ namespace Shared
 
             if (verticalSpeed < 0)
             {
-                sprite.Texture = jumpSpriteList[0];
-                intAnimation = 21;
-                
+                sprite.Texture = jumpSpriteList[0]; 
             }
             else if (verticalSpeed > 0)
             {
                 sprite.Texture = jumpSpriteList[1];
-                intAnimation = 22;
             }
         }
 
@@ -490,8 +490,9 @@ namespace Shared
             }
         }
 
-        public void Render(RenderWindow window, Camera camera)
-        {
+        public void Render(RenderWindow window,float   deltaTime)
+        {   
+            PlayerAnimation(deltaTime);
             UpdateSpriteOrientation();
             float offsetX = isFacingRight ? -5 : 5; // Offset to the right if facing right, otherwise to the left
             sprite.Position = new Vector2f(playerPosition.X + offsetX, playerPosition.Y); // Add 4 for vertical offset
@@ -571,12 +572,29 @@ namespace Shared
             return playerPosition;
         }
 
-        public int GetIntAnimation(){
-            return intAnimation;
+        public Animation GetAnimationState(){
+            return anim;
         }
 
-        public void SetSpriteTexture(int intAnimation){
-            sprite.Texture = TextureManager.textures[intAnimation];
+        public void SetAnimationState(Animation anim){
+            switch (anim){
+                case Animation.dead:
+                    currentAnimation =deadSpriteList;
+                    break;
+                case Animation.idle:
+                    currentAnimation = idleSpriteList; 
+                    break;
+                case Animation.jump:
+                    currentAnimation = jumpSpriteList;
+                    break;
+                case Animation.run:
+                    currentAnimation = runSpriteList;
+                    break;
+                default :
+                    currentAnimation = idleSpriteList;
+                    break;
+            }
+           
         }
 
         // Méthode pour mettre à jour la position du joueur
@@ -584,5 +602,12 @@ namespace Shared
         {
             playerPosition = newPosition;
         }
+    }
+
+    public enum Animation{
+        idle,
+        jump,
+        dead,
+        run,
     }
 }
