@@ -386,7 +386,6 @@ namespace Shared
             else
             {
                 currentAnimation = idleSpriteList;
-                intAnimation = 0;
             }
 
             // Reset frame if animation has changed
