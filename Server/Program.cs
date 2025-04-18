@@ -8,7 +8,7 @@ class Program{
 
     public static async Task Main(){
         var database = Database.GetInstance();
-        HttpServer httpsServer = new(database);
+        HttpServer httpsServer = new();
         UDPServer udpServer = new();
         Task httpTask = httpsServer.StartAsync();
         Task udpTask = Task.Run(() => udpServer.Start());

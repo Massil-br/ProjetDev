@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 using BCrypt.Net;
 using Microsoft.Data.Sqlite;
 using Shared;
-
+using src;
 public class Database
 {
     private static Database? instance;
@@ -35,7 +35,15 @@ public class Database
             password TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             deleted_at DATETIME
-        )";
+        );
+        CREATE TABLE IF NOT EXISTS sessions (
+        token TEXT PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        expires_at DATETIME NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        );";
+
+        
         
         using var cmd = new SqliteCommand(createTableQuery, connection);
         await cmd.ExecuteNonQueryAsync();
@@ -97,25 +105,24 @@ public class Database
     }
 
     // Récupérer un utilisateur par son email
-    public async Task<User?> GetUserAsync(string email, string password)
-    {
-        var cmd = new SqliteCommand("SELECT id, username, email, password FROM users WHERE email = @email AND deleted_at IS NULL", connection);
-        cmd.Parameters.AddWithValue("@email", email);
-        using var reader = await cmd.ExecuteReaderAsync();
+    public async Task<LoginResult> GetUserAsync(string email, string password)
+{
+    var cmd = new SqliteCommand("SELECT id, username, email, password FROM users WHERE email = @email AND deleted_at IS NULL", connection);
+    cmd.Parameters.AddWithValue("@email", email);
+    using var reader = await cmd.ExecuteReaderAsync();
 
-        if (await reader.ReadAsync()){
-            var storedPassword = reader.GetString(3); // Récupérer le mot de passe haché depuis la DB
-            // Vérifier si le mot de passe fourni correspond au mot de passe stocké
-            if (BCrypt.Net.BCrypt.Verify(password, storedPassword)){
-                return new User(reader.GetInt32(0), reader.GetString(1), reader.GetString(2), storedPassword);
-            }else{
-                Console.WriteLine("Mot de passe incorrect.");
-                return null; // Mot de passe incorrect
-            }
+    if (await reader.ReadAsync()){
+        var storedPassword = reader.GetString(3);
+        if (BCrypt.Net.BCrypt.Verify(password, storedPassword)){
+            var user = new User(reader.GetInt32(0), reader.GetString(1), reader.GetString(2), storedPassword);
+            return new LoginResult(LoginResultStatus.Success, user);
+        } else {
+            return new LoginResult(LoginResultStatus.WrongPassword);
         }
-        return null;
     }
 
+    return new LoginResult(LoginResultStatus.UserNotFound);
+}
     // Méthode pour supprimer un utilisateur (soft delete)
     public async Task<bool> DeleteUserAsync(string email)
     {
@@ -154,4 +161,46 @@ public class Database
     {
         return username.Length >= 3 && username.Length <= 16;
     }
+
+    public async Task CreateSessionAsync(int userId, string token, DateTime expiresAt)
+    {
+        var cmd = new SqliteCommand("INSERT INTO sessions (token, user_id, expires_at) VALUES (@token, @user_id, @expires_at)", connection);
+        cmd.Parameters.AddWithValue("@token", token);
+        cmd.Parameters.AddWithValue("@user_id", userId);
+        cmd.Parameters.AddWithValue("@expires_at", expiresAt.ToString("yyyy-MM-dd HH:mm:ss"));
+
+        await cmd.ExecuteNonQueryAsync();
+    }
+
+
+    public async Task<User?> GetUserByTokenAsync(string token)
+    {
+        var cmd = new SqliteCommand(@"
+            SELECT u.id, u.username, u.email, u.password FROM users u
+            JOIN sessions s ON s.user_id = u.id
+            WHERE s.token = @token AND s.expires_at > CURRENT_TIMESTAMP AND u.deleted_at IS NULL
+        ", connection);
+
+        cmd.Parameters.AddWithValue("@token", token);
+        using var reader = await cmd.ExecuteReaderAsync();
+
+        if (await reader.ReadAsync())
+        {
+            return new User(reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetString(3));
+        }
+
+        return null;
+    }
+
+    public async Task CleanupExpiredSessionsAsync()
+    {   
+        while (true){
+            await Task.Delay(TimeSpan.FromHours(1));
+            var cmd = new SqliteCommand("DELETE FROM sessions WHERE expires_at <= CURRENT_TIMESTAMP", connection);
+            await cmd.ExecuteNonQueryAsync();
+        }
+        
+    }
+
+
 }

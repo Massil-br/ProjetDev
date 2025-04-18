@@ -1,10 +1,12 @@
 using System;
+using System.Data.Common;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using SFML.System;
 using SFML.Window;
 using src;
 
@@ -15,9 +17,9 @@ public class HttpServer
 
     private Database database;
 
-    public HttpServer(Database database,string port ="5001")
+    public HttpServer(string port ="5001")
     {   
-        this.database = database;
+        this.database =Database.GetInstance();
         string ip = GetLocalIPAddress();
         string prefix = $"https://{ip}:{port}/";
         serverIp = prefix;
@@ -50,11 +52,15 @@ public class HttpServer
         {
             _listener.Start();
             Console.WriteLine($"listening on {serverIp}");
+           
+            _= database.CleanupExpiredSessionsAsync();
 
             while (true)
             {
                 var context = await _listener.GetContextAsync();
                 await HandleRequest(context);
+                
+                
             }
         }
         catch (Exception ex)
@@ -65,9 +71,6 @@ public class HttpServer
 
     private async Task HandleRequest(HttpListenerContext context)
     {
-
-
-
 
         try
         {
