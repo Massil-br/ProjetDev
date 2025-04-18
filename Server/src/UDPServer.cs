@@ -16,6 +16,7 @@ public class UDPServer
     private Dictionary<int, IPEndPoint> playerEndPoints = new Dictionary<int, IPEndPoint>();
     private Dictionary<int, int> playerIntAnimation = new Dictionary<int, int>();
     private Dictionary<int, bool> playerFacing = new Dictionary<int, bool>();
+    private Dictionary<int, float> playerVerticalSpeed = new();
     
 
     public UDPServer()
@@ -44,7 +45,7 @@ public class UDPServer
                     playerEndPoints[assignedId] = clientEndPoint;
                     Console.WriteLine($"New player connected with ID {assignedId}");
                 }
-                else if (parts.Length == 5)
+                else if (parts.Length == 6)
                 {
                     if (int.TryParse(parts[0], out int playerId))
                     {
@@ -52,11 +53,13 @@ public class UDPServer
                         float y = float.Parse(parts[2]);
                         int intAnimation = int.Parse(parts[3]);
                         bool isFacingRight = bool.Parse(parts[4]);
+                        float verticalSpeed = float.Parse(parts[5]);
 
 
                         players[playerId] = new Vector2f(x, y);
                         playerIntAnimation[playerId]= intAnimation;
                         playerFacing[playerId]= isFacingRight;
+                        playerVerticalSpeed[playerId] = verticalSpeed;
                     }
                 }
 
@@ -64,7 +67,7 @@ public class UDPServer
                 StringBuilder responseBuilder = new StringBuilder();
                 foreach (var kvp in players)
                 {
-                    responseBuilder.Append($"{kvp.Key}:{kvp.Value.X}:{kvp.Value.Y}:{playerIntAnimation[kvp.Key]}:{playerFacing[kvp.Key]}|");
+                    responseBuilder.Append($"{kvp.Key}:{kvp.Value.X}:{kvp.Value.Y}:{playerIntAnimation[kvp.Key]}:{playerFacing[kvp.Key]}:{playerVerticalSpeed[kvp.Key]}|");
                 }
 
                 string responseMessage = responseBuilder.ToString().TrimEnd('|');
