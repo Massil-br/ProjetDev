@@ -11,7 +11,6 @@ namespace src
         public static (Player player, Map map) InitGameLoop()
         {
             var player = new Player("Player", 100, 10);
-            TextureManager.LoadTextures();
             var map = new Map(500, 50, 32);
             map.InitTestMap();
             GameInitialized = true;
@@ -23,12 +22,12 @@ namespace src
             camera.Resize(640, 360);
         }
 
-        public static State RunGameLoop(Player player, Map map, float deltaTime, RenderWindow window, Camera camera, Dictionary<int, Player> otherPlayers)
+        public static State RunGameLoop(Player player, Map map, float deltaTime, RenderWindow window, Camera camera, Dictionary<int, Player> otherPlayers, State state)
         {   
-            
+         
             player.Update(window, deltaTime, map, camera);
             player.UpdatePlayerUi(window);
-             player.Debug(deltaTime, window);
+            player.Debug(deltaTime, window);
             player.DrawPlayerUi(window, camera);
             camera.Update(player.GetPosition());
             map.Draw(window);
@@ -46,7 +45,10 @@ namespace src
             player.Render(window, deltaTime);
            
 
-            return State.Playing;
+            return state;  
         }
+
+
+
     }
 }

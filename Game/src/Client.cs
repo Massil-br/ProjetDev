@@ -7,6 +7,7 @@ using Shared;
 using System.Collections.Generic;
 using SFML.System;
 
+
 public class Client
 {   
 

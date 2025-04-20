@@ -122,10 +122,7 @@ public class AuthController
         case LoginResultStatus.UserNotFound:
             HttpServer.SendResponse(context, 404, "Aucun compte trouvé avec cet email.");
             break;
-    }
-}
-
-
-   
+        }
+    }  
 }
 

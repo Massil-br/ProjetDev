@@ -60,12 +60,16 @@ namespace src
         private void OnLostFocus(object? sender, EventArgs e)
         {
             lastState = currentState;
+            player?.SetPause(true);
             currentState = State.Paused;
+            window.SetFramerateLimit(30);
         }
 
         private void OnGainedFocus(object? sender, EventArgs e)
         {
+            player?.SetPause(false);
             currentState = lastState;
+            window.SetFramerateLimit(5000);
         }
 
         public void Run()
@@ -101,7 +105,7 @@ namespace src
                             firstEntryToMainMenu = true;
                             GameLoop.ResizeCamera(camera);
                         }
-                        currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers);
+                        currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers,currentState);
                         break;
 
                     case State.Multiplayer:
@@ -117,7 +121,11 @@ namespace src
                         }
                         // Update other players from the client
                         otherPlayers = udpClient?.GetOtherPlayers() ?? new Dictionary<int, Player>();
-                        currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers);
+                        currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers,currentState);
+                        break;
+                    case State.Paused:
+                        
+                        currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers, currentState);
                         break;
                 }
 

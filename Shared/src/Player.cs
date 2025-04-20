@@ -7,7 +7,8 @@ using System.Threading.Channels;
 namespace Shared
 {
     public class Player
-    {
+    {   //window
+        private bool isPaused = false;
         // Player attributes
         private string name;
         private int health;
@@ -164,10 +165,9 @@ namespace Shared
             ApplyGravity(deltaTime, map);
             HandleShooting(window, deltaTime, camera, map);
             UpdateProjectiles(deltaTime);
-            
-            
-            //Render(window, deltaTime);
         }
+
+       
         
 
         private void ApplyGravity(float deltaTime, Map map)
@@ -205,7 +205,7 @@ namespace Shared
              if(Keyboard.IsKeyPressed(Keyboard.Key.R)){
                 isAlive = true;
             }
-            if (!isAlive) return;
+            if (!isAlive || isPaused) return;
 
             if (fallGraceTimer > 0)
             {
@@ -452,8 +452,14 @@ namespace Shared
         {
             if (!isAlive) return;
 
-            shootTimer -= deltaTime;
+            if (shootTimer > 0 ){
+                shootTimer -= deltaTime;
+            }
+
             bool isMousePressed = Mouse.IsButtonPressed(Mouse.Button.Left);
+            if (isPaused){
+                isMousePressed = false;
+            }
             if (shootTimer <= 0 && isMousePressed && !projectileShot)
             {
                 projectileShot = true;
@@ -581,6 +587,14 @@ namespace Shared
         }
         public void SetPlayerMovement(Vector2f movement){
             this.movement = movement;
+        }
+
+        public void SetPause(bool paused){
+            if (paused){
+                isPaused = true;
+            }else {
+                isPaused = false;
+            }
         }
 
         public void SetAnimationState(Animation anim){
