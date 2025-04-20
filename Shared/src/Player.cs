@@ -205,7 +205,7 @@ namespace Shared
              if(Keyboard.IsKeyPressed(Keyboard.Key.R)){
                 isAlive = true;
             }
-            if (!isAlive || isPaused) return;
+            
 
             if (fallGraceTimer > 0)
             {
@@ -215,26 +215,29 @@ namespace Shared
             movement = (0, 0);
             
 
+            if (isAlive || !isPaused){
 
-            // Handle jump
-            if (Keyboard.IsKeyPressed(Keyboard.Key.Z) && (TileOnGround(map) == 1 || fallGraceTimer > 0))
-            {
-                verticalSpeed = -jumpForce;  // Jump
-                fallGraceTimer = 0; // Reset fall grace timer
-            }
+           
+                // Handle jump
+                if (Keyboard.IsKeyPressed(Keyboard.Key.Z) && (TileOnGround(map) == 1 || fallGraceTimer > 0))
+                {
+                    verticalSpeed = -jumpForce;  // Jump
+                    fallGraceTimer = 0; // Reset fall grace timer
+                }
 
-            // Handle left movement
-            if (Keyboard.IsKeyPressed(Keyboard.Key.Q))
-            {
-                movement.X -= speed * deltaTime;
-                isFacingRight = false;
-            }
+                // Handle left movement
+                if (Keyboard.IsKeyPressed(Keyboard.Key.Q))
+                {
+                    movement.X -= speed * deltaTime;
+                    isFacingRight = false;
+                }
 
-            // Handle right movement
-            if (Keyboard.IsKeyPressed(Keyboard.Key.D))
-            {
-                movement.X += speed * deltaTime;
-                isFacingRight = true;
+                // Handle right movement
+                if (Keyboard.IsKeyPressed(Keyboard.Key.D))
+                {
+                    movement.X += speed * deltaTime;
+                    isFacingRight = true;
+                }
             }
 
             // Handle jump on tile type 2
