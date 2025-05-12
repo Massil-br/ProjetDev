@@ -29,6 +29,9 @@ namespace src
 
         private static State state = State.MainMenu;
 
+        private static  View uiView = new View();
+        
+
         public static void InitMainMenu()
         {   
             state = State.MainMenu;
@@ -43,7 +46,10 @@ namespace src
 
         public static State RunMainMenu(RenderWindow window, float deltaTime)
         {   
-            View uiView = new View(new FloatRect(0, 0, window.Size.X, window.Size.Y));
+            //View uiView = new View(new FloatRect(0, 0, window.Size.X, window.Size.Y));
+            uiView.Size = new Vector2f(window.Size.X, window.Size.Y);
+            uiView.Center = new Vector2f(window.Size.X / 2f, window.Size.Y / 2f);
+
             window.SetView(uiView);
             if (ArrowSelectionTimer > 0)
             {
