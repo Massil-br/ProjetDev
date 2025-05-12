@@ -1,156 +1,161 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Numerics;
 using System.Text;
 using SFML.System;
 using Shared;
-namespace src;
+
+public class GameRoom
+{
+    public int RoomId { get; }
+    public List<int> Players { get; } = new();
+    public const int MaxPlayers = 4;
+    public bool IsFull => Players.Count >= MaxPlayers;
+
+    public GameRoom(int id) => RoomId = id;
+
+    public void AddPlayer(int playerId)
+    {
+        if (!IsFull && !Players.Contains(playerId))
+            Players.Add(playerId);
+    }
+
+    public void RemovePlayer(int playerId) => Players.Remove(playerId);
+}
 
 public class UDPServer
 {
-    private UdpClient udpServer;
-    private IPEndPoint clientEndPoint;
-    private const int Port = 12345;
-    private int nextPlayerId = 1;
-    private Dictionary<int, Vector2f> players = new Dictionary<int, Vector2f>();
-    private Dictionary<int, IPEndPoint> playerEndPoints = new Dictionary<int, IPEndPoint>();
-    private Dictionary<int, Animation> playerAnimationState = new Dictionary<int, Animation>();
-    private Dictionary<int, bool> playerFacing = new Dictionary<int, bool>();
-    private Dictionary<int, float> playerVerticalSpeed = new();
-    private Dictionary<int, Vector2f>playerMovement= new();
+    private UdpClient udpServer = new(12345);
+    private Dictionary<int, IPEndPoint> playerEndpoints = new();
+    private Dictionary<int, Vector2f> playerPositions = new();
+    private Dictionary<int, Animation> playerAnimations = new();
+    private Dictionary<int, bool> playerFacings = new();
+    private Dictionary<int, float> playerVerticalSpeeds = new();
+    private Dictionary<int, Vector2f> playerMovements = new();
+    private Dictionary<int, GameRoom> rooms = new();
+    private Dictionary<int, int> playerToRoom = new();
     private Dictionary<int, DateTime> lastSeen = new();
-    private const int TimeoutSeconds = 5; 
-   
-  
-    
-
-    public UDPServer()
-    {
-        udpServer = new UdpClient(Port);
-        clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
-        Console.WriteLine("UDP server started on port " + Port);
-    }
+    private int nextPlayerId = 1;
+    private const int TimeoutSeconds = 5;
 
     public void Start()
     {
+        Console.WriteLine("Server started on port 12345");
         while (true)
         {
             try
             {
-                byte[] receivedData = udpServer.Receive(ref clientEndPoint);
-                string message = Encoding.UTF8.GetString(receivedData);
-                Console.WriteLine("Received message: " + message);
+                IPEndPoint sender = new(IPAddress.Any, 0);
+                byte[] data = udpServer.Receive(ref sender);
+                string msg = Encoding.UTF8.GetString(data);
 
-                HandleMessage(message);
+                if (msg == "MATCHMAKING_REQUEST")
+                {
+                    int id = nextPlayerId++;
+                    playerEndpoints[id] = sender;
+                    GameRoom room = rooms.Values.FirstOrDefault(r => !r.IsFull) ?? CreateRoom();
+                    room.AddPlayer(id);
+                    playerToRoom[id] = room.RoomId;
+
+                    udpServer.Send(Encoding.UTF8.GetBytes($"PLAYER_ID:{id}"), $"PLAYER_ID:{id}".Length, sender);
+                    udpServer.Send(Encoding.UTF8.GetBytes($"ROOM_ID:{room.RoomId}"), $"ROOM_ID:{room.RoomId}".Length, sender);
+
+                    Console.WriteLine($"Player {id} assigned to room {room.RoomId}");
+                }
+                else if (msg.Contains(':'))
+                {
+                    string[] parts = msg.Split(':');
+                    if (int.TryParse(parts[0], out int id) && parts.Length == 8)
+                    {
+                        float x = float.Parse(parts[1]);
+                        float y = float.Parse(parts[2]);
+                        Animation anim = Enum.Parse<Animation>(parts[3]);
+                        bool facing = bool.Parse(parts[4]);
+                        float vertical = float.Parse(parts[5]);
+                        float moveX = float.Parse(parts[6]);
+                        float moveY = float.Parse(parts[7]);
+
+                        lastSeen[id] = DateTime.UtcNow;
+                        playerPositions[id] = new Vector2f(x, y);
+                        playerAnimations[id] = anim;
+                        playerFacings[id] = facing;
+                        playerVerticalSpeeds[id] = vertical;
+                        playerMovements[id] = new Vector2f(moveX, moveY);
+                    }
+                }
+
                 HandleDisconnections();
-                BroadcastPlayerStates();
+                BroadcastStates();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine($"Server error: {ex.Message}");
             }
         }
     }
 
-
-
-    private void HandleMessage(string message)
+    private GameRoom CreateRoom()
     {
-        string[] parts = message.Split(':');
-        if (parts[0] == "REQUEST_ID")
-        {
-            AssignPlayerId();
-        }
-        else if (parts.Length == 8 && int.TryParse(parts[0], out int playerId))
-        {
-            UpdatePlayerState(playerId, parts);
-        }
-    }
-
-    private void AssignPlayerId()
-    {
-        int assignedId = nextPlayerId++;
-        byte[] idData = Encoding.UTF8.GetBytes(assignedId.ToString());
-        udpServer.Send(idData, idData.Length, clientEndPoint);
-        playerEndPoints[assignedId] = clientEndPoint;
-        Console.WriteLine($"New player connected with ID {assignedId}");
-    }
-
-    private void UpdatePlayerState(int playerId, string[] parts)
-    {
-        lastSeen[playerId] = DateTime.UtcNow;
-        Console.WriteLine($"last seen {playerId} : {lastSeen[playerId]}");
-
-        float x = float.Parse(parts[1]);
-        float y = float.Parse(parts[2]);
-        Animation anim = Enum.Parse<Animation>(parts[3]);
-        bool isFacingRight = bool.Parse(parts[4]);
-        float verticalSpeed = float.Parse(parts[5]);
-        float movementX = float.Parse(parts[6]);
-        float movementY = float.Parse(parts[7]);
-
-        players[playerId] = new Vector2f(x, y);
-        playerAnimationState[playerId] = anim;
-        playerFacing[playerId] = isFacingRight;
-        playerVerticalSpeed[playerId] = verticalSpeed;
-        playerMovement[playerId] = new Vector2f(movementX, movementY);
+        int id = rooms.Count + 1;
+        GameRoom room = new(id);
+        rooms[id] = room;
+        Console.WriteLine($"Created new room: {id}");
+        return room;
     }
 
     private void HandleDisconnections()
     {
-        List<int> disconnectedPlayers = new();
+        var toRemove = lastSeen.Where(kv => (DateTime.UtcNow - kv.Value).TotalSeconds > TimeoutSeconds)
+                               .Select(kv => kv.Key)
+                               .ToList();
 
-        foreach (var kvp in lastSeen)
+        foreach (int id in toRemove)
         {
-            if ((DateTime.UtcNow - kvp.Value).TotalSeconds > TimeoutSeconds)
+            if (playerToRoom.TryGetValue(id, out int roomId) && rooms.TryGetValue(roomId, out GameRoom? room))
+                room.RemovePlayer(id);
+
+            playerEndpoints.Remove(id);
+            playerPositions.Remove(id);
+            playerToRoom.Remove(id);
+            lastSeen.Remove(id);
+
+            Console.WriteLine($"Player {id} disconnected due to timeout.");
+        }
+    }
+
+    private void BroadcastStates()
+    {
+        foreach (var room in rooms.Values)
+        {
+            if (room.Players.Count == 0) continue;
+
+            StringBuilder sb = new();
+            foreach (int id in room.Players)
             {
-                disconnectedPlayers.Add(kvp.Key);
+                if (!playerPositions.ContainsKey(id)) continue;
+
+                Vector2f pos = playerPositions[id];
+                if (!playerAnimations.ContainsKey(id) || !playerFacings.ContainsKey(id) || !playerVerticalSpeeds.ContainsKey(id) || !playerMovements.ContainsKey(id))
+                    continue;
+
+                Animation anim = playerAnimations[id];
+                bool facing = playerFacings[id];
+                float vertical = playerVerticalSpeeds[id];
+                Vector2f movement = playerMovements[id];
+
+                sb.Append($"{id}:{pos.X}:{pos.Y}:{anim.ToString().ToLowerInvariant()}:{facing}:{vertical}:{movement.X}:{movement.Y}|");
+            }
+
+            string packet = sb.ToString().TrimEnd('|');
+            byte[] bytes = Encoding.UTF8.GetBytes(packet);
+
+            foreach (int id in room.Players)
+            {
+                if (playerEndpoints.TryGetValue(id, out var ep))
+                    udpServer.Send(bytes, bytes.Length, ep);
             }
         }
-
-        foreach (int id in disconnectedPlayers)
-        {
-           DisconnectPlayer(id);
-        }
-    }
-
-
-    private void DisconnectPlayer(int id){
-        players.Remove(id);
-        playerAnimationState.Remove(id);
-        playerFacing.Remove(id);
-        playerVerticalSpeed.Remove(id);
-        playerMovement.Remove(id);
-        playerEndPoints.Remove(id);
-        lastSeen.Remove(id);
-
-        Console.WriteLine($"Player {id} disconnected due to inactivity.");
-
-    }
-
-    private void BroadcastPlayerStates()
-    {
-        StringBuilder responseBuilder = new StringBuilder();
-        foreach (var kvp in players)
-        {
-            responseBuilder.Append($"{kvp.Key}:{kvp.Value.X}:{kvp.Value.Y}:{ 
-                playerAnimationState[kvp.Key]}:{playerFacing[kvp.Key]}:{ 
-                playerVerticalSpeed[kvp.Key]}:{playerMovement[kvp.Key].X}:{playerMovement[kvp.Key].Y}|");
-        }
-
-        string responseMessage = responseBuilder.ToString().TrimEnd('|');
-        byte[] responseData = Encoding.UTF8.GetBytes(responseMessage);
-
-        foreach (var endPoint in playerEndPoints.Values)
-        {
-            udpServer.Send(responseData, responseData.Length, endPoint);
-        }
-    }
-
-    public void Stop()
-    {
-        udpServer.Close();
     }
 }

@@ -215,7 +215,7 @@ namespace Shared
             movement = (0, 0);
             
 
-            if (isAlive || !isPaused){
+            if (isAlive && !isPaused){
 
            
                 // Handle jump

@@ -4,7 +4,6 @@ using SFML.Window;
 using Shared;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace src
@@ -19,9 +18,10 @@ namespace src
     }
 
     public class Loop
-    {   
-        const string ServerIp = "";
-        const int Port = 49153;
+    {
+        const string ServerIp = "127.0.0.1";
+        const int Port = 12345;
+
         private RenderWindow window;
         private Clock clock;
         private Camera camera;
@@ -34,6 +34,8 @@ namespace src
         private Map? map;
         Thread? clientThread;
 
+        private float Timer;
+
         private Client? udpClient;
         private Dictionary<int, Player> otherPlayers = new Dictionary<int, Player>();
 
@@ -42,7 +44,6 @@ namespace src
             window = new RenderWindow(new VideoMode(1280, 720), "My SFML Window");
             clock = new Clock();
             camera = new Camera(640, 360);
-
 
             window.Closed += (sender, e) => window.Close();
             window.Resized += OnWindowResized;
@@ -74,17 +75,15 @@ namespace src
 
         public void Run()
         {
-            if (!GameLoop.GameInitialized || player == null || map == null)
-            {
-                (player, map) = GameLoop.InitGameLoop();
-            }
-
+            (player, map) = GameLoop.InitGameLoop();
             currentState = State.MainMenu;
+
             while (window.IsOpen)
             {
                 float deltaTime = clock.Restart().AsSeconds();
                 window.DispatchEvents();
                 window.Clear();
+                Timer += deltaTime;
 
                 switch (currentState)
                 {
@@ -105,34 +104,49 @@ namespace src
                             firstEntryToMainMenu = true;
                             GameLoop.ResizeCamera(camera);
                         }
-                        currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers,currentState);
+                        currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers, currentState);
                         break;
 
                     case State.Multiplayer:
                         if (firstEntryToGameLoop)
                         {
                             firstEntryToGameLoop = false;
-                            firstEntryToMainMenu = false;
+                            firstEntryToMainMenu = true;
                             GameLoop.ResizeCamera(camera);
+
                             udpClient = new Client(ServerIp, Port);
+                            bool connected = udpClient.StartMatchmaking(player, timeoutSeconds: 5); // Timeout de 5 secondes
+
+                            if (!connected)
+                            {
+                                Console.WriteLine("Connection to server timed out.");
+                                currentState = State.MainMenu;  // Retour au menu principal
+                                break;
+                            }
+
                             clientThread = new Thread(() => udpClient.Start(player));
                             clientThread.IsBackground = true;
                             clientThread.Start();
                         }
-                        // Update other players from the client
+
                         otherPlayers = udpClient?.GetOtherPlayers() ?? new Dictionary<int, Player>();
-                        currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers,currentState);
-                        break;
-                    case State.Paused:
-                        
                         currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers, currentState);
                         break;
+
+
+                    case State.Paused:
+                        currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers, currentState);
+                        break;
+                }
+                if (Timer >= 1 || currentState!= lastState){
+                    Console.WriteLine(currentState);
+                    Timer= 0;
                 }
 
                 window.Display();
             }
-            clientThread?.Interrupt();
 
+            clientThread?.Interrupt();
         }
     }
 }
