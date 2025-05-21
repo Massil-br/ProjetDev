@@ -22,7 +22,7 @@ namespace src
     public class Loop
     {
         const string ServerIp = "127.0.0.1";
-        const int Port = 12345;
+        const int Port = 11111;
         
 
         private RenderWindow window;

@@ -28,7 +28,7 @@ public class GameRoom
 
 public class UDPServer
 {
-    private UdpClient udpServer = new(12345);
+    private UdpClient udpServer = new(11111);
     private Dictionary<int, IPEndPoint> playerEndpoints = new();
     private Dictionary<int, Vector2f> playerPositions = new();
     private Dictionary<int, Animation> playerAnimations = new();
