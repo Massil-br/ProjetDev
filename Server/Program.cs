@@ -14,7 +14,7 @@ class Program
 
         // Créer et démarrer l'API server
         var apiServer = ApiServer.CreateApiServer(args);
-        Task apiTask = Task.Run(() => apiServer.Run());
+        Task apiTask = Task.Run(() => apiServer.Run(url: "http://localhost:5001"));
 
         // Attendez que les deux serveurs se terminent (ce qui ne se produira normalement jamais si les serveurs sont en cours d'exécution)
         await Task.WhenAll(udpTask, apiTask);
