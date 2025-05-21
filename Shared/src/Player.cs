@@ -199,12 +199,7 @@ namespace Shared
 
         private void HandleInput(float deltaTime, Map map)
         {   
-            if(Keyboard.IsKeyPressed(Keyboard.Key.E)){
-                isAlive = false;
-            }
-             if(Keyboard.IsKeyPressed(Keyboard.Key.R)){
-                isAlive = true;
-            }
+           
             
 
             if (fallGraceTimer > 0)
@@ -213,30 +208,37 @@ namespace Shared
             }
 
             movement = (0, 0);
-            
 
-            if (isAlive && !isPaused){
+            if (!isPaused){
 
-           
-                // Handle jump
-                if (Keyboard.IsKeyPressed(Keyboard.Key.Z) && (TileOnGround(map) == 1 || fallGraceTimer > 0))
-                {
-                    verticalSpeed = -jumpForce;  // Jump
-                    fallGraceTimer = 0; // Reset fall grace timer
+                if(Keyboard.IsKeyPressed(Keyboard.Key.E)){
+                isAlive = false;
+                }
+                if(Keyboard.IsKeyPressed(Keyboard.Key.R)){
+                    isAlive = true;
                 }
 
-                // Handle left movement
-                if (Keyboard.IsKeyPressed(Keyboard.Key.Q))
-                {
-                    movement.X -= speed * deltaTime;
-                    isFacingRight = false;
-                }
+                if (isAlive){
+                    // Handle jump
+                    if (Keyboard.IsKeyPressed(Keyboard.Key.Z) && (TileOnGround(map) == 1 || fallGraceTimer > 0))
+                    {
+                        verticalSpeed = -jumpForce;  // Jump
+                        fallGraceTimer = 0; // Reset fall grace timer
+                    }
 
-                // Handle right movement
-                if (Keyboard.IsKeyPressed(Keyboard.Key.D))
-                {
-                    movement.X += speed * deltaTime;
-                    isFacingRight = true;
+                    // Handle left movement
+                    if (Keyboard.IsKeyPressed(Keyboard.Key.Q))
+                    {
+                        movement.X -= speed * deltaTime;
+                        isFacingRight = false;
+                    }
+
+                    // Handle right movement
+                    if (Keyboard.IsKeyPressed(Keyboard.Key.D))
+                    {
+                        movement.X += speed * deltaTime;
+                        isFacingRight = true;
+                    }
                 }
             }
 
