@@ -145,17 +145,22 @@ namespace src
                 window.Draw(joinGameText);
                 window.Draw(backText);
 
+
+                
+
                 if (Mouse.IsButtonPressed(Mouse.Button.Left) && mouseClickTimer > mouseClickCooldown)
                 {
                     mouseClickTimer = 0f;
 
                     if (backText.GetGlobalBounds().Contains(worldPos.X, worldPos.Y))
                         menuState = MenuState.Main;
+                    else if (hostGameText.GetGlobalBounds().Contains(worldPos.X, worldPos.Y))
+                        state = State.Multiplayer;
                 }
             }
 
 
-            return state;
+            return state ;
         }
 
     }
