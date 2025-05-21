@@ -11,8 +11,9 @@ public class GameRoom
 {
     public int RoomId { get; }
     public List<int> Players { get; } = new();
-    public const int MaxPlayers = 4;
+    public const int MaxPlayers = 2;
     public bool IsFull => Players.Count >= MaxPlayers;
+    public bool IsReady => Players.Count == MaxPlayers;
 
     public GameRoom(int id) => RoomId = id;
 
@@ -51,6 +52,8 @@ public class UDPServer
                 byte[] data = udpServer.Receive(ref sender);
                 string msg = Encoding.UTF8.GetString(data);
 
+                Console.WriteLine($"Message reçu: {msg}");
+
                 if (msg == "MATCHMAKING_REQUEST")
                 {
                     int id = nextPlayerId++;
@@ -69,6 +72,7 @@ public class UDPServer
                     string[] parts = msg.Split(':');
                     if (int.TryParse(parts[0], out int id) && parts.Length == 8)
                     {
+                        Console.WriteLine($"Mise à jour des données du joueur {id}");
                         float x = float.Parse(parts[1]);
                         float y = float.Parse(parts[2]);
                         Animation anim = Enum.Parse<Animation>(parts[3]);
@@ -83,6 +87,7 @@ public class UDPServer
                         playerFacings[id] = facing;
                         playerVerticalSpeeds[id] = vertical;
                         playerMovements[id] = new Vector2f(moveX, moveY);
+                        Console.WriteLine($"Position mise à jour pour le joueur {id}: ({x}, {y})");
                     }
                 }
 
@@ -131,30 +136,45 @@ public class UDPServer
         {
             if (room.Players.Count == 0) continue;
 
+            Console.WriteLine($"Broadcast pour la salle {room.RoomId} - Nombre de joueurs: {room.Players.Count}");
+            Console.WriteLine($"La salle est-elle prête? {room.IsReady}");
+
             StringBuilder sb = new();
+            DataState roomState = new(room.IsReady ? DState.playing : DState.waiting);
+            sb.Append(roomState.message);
+            sb.Append('|');
+
             foreach (int id in room.Players)
             {
-                if (!playerPositions.ContainsKey(id)) continue;
-
-                Vector2f pos = playerPositions[id];
-                if (!playerAnimations.ContainsKey(id) || !playerFacings.ContainsKey(id) || !playerVerticalSpeeds.ContainsKey(id) || !playerMovements.ContainsKey(id))
+                if (!playerAnimations.ContainsKey(id) || !playerFacings.ContainsKey(id) || !playerVerticalSpeeds.ContainsKey(id)
+                    || !playerMovements.ContainsKey(id) ||!playerPositions.ContainsKey(id) )
+                {
+                    Console.WriteLine($"Données manquantes pour le joueur {id}");
                     continue;
+                }
 
-                Animation anim = playerAnimations[id];
-                bool facing = playerFacings[id];
-                float vertical = playerVerticalSpeeds[id];
-                Vector2f movement = playerMovements[id];
-
-                sb.Append($"{id}:{pos.X}:{pos.Y}:{anim.ToString().ToLowerInvariant()}:{facing}:{vertical}:{movement.X}:{movement.Y}|");
+                PlayerServerInfo Pinfo = new (playerPositions[id],playerAnimations[id],playerFacings[id],playerVerticalSpeeds[id],playerMovements[id]);
+                PlayerMessage message = new(Pinfo, id);
+                Console.WriteLine($"Ajout des données du joueur {id}: {message.Message}");
+                sb.Append(message.Message);
+                sb.Append('|');
             }
 
             string packet = sb.ToString().TrimEnd('|');
+            Console.WriteLine($"Packet final: {packet}");
             byte[] bytes = Encoding.UTF8.GetBytes(packet);
 
             foreach (int id in room.Players)
             {
                 if (playerEndpoints.TryGetValue(id, out var ep))
+                {
                     udpServer.Send(bytes, bytes.Length, ep);
+                    Console.WriteLine($"Packet envoyé au joueur {id}");
+                }
+                else
+                {
+                    Console.WriteLine($"Endpoint non trouvé pour le joueur {id}");
+                }
             }
         }
     }

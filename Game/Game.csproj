@@ -5,6 +5,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
 
   <!-- Copier tous les fichiers du répertoire src dans le répertoire de sortie -->
@@ -14,10 +15,19 @@
     </None>
   </ItemGroup>
 
+  <!-- Copier le dossier build de l'application React -->
+  <ItemGroup>
+    <Content Include="..\react-app\build\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>build\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="SFML.Net" Version="2.6.1" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>

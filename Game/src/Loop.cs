@@ -5,6 +5,7 @@ using Shared;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.IO;
 
 namespace src
 {
@@ -14,13 +15,15 @@ namespace src
         Playing,
         Paused,
         GameOver,
-        Multiplayer
+        Multiplayer,
+        Auth
     }
 
     public class Loop
     {
         const string ServerIp = "127.0.0.1";
         const int Port = 12345;
+        
 
         private RenderWindow window;
         private Clock clock;
@@ -28,9 +31,12 @@ namespace src
         private State currentState;
         private State lastState = State.MainMenu;
 
+ 
+
         private Player? player;
         private bool firstEntryToGameLoop = true;
         private bool firstEntryToMainMenu = true;
+        private bool firstEntryToAuth = true;
         private Map? map;
         Thread? clientThread;
 
@@ -41,11 +47,14 @@ namespace src
 
         public Loop()
         {
+           
             window = new RenderWindow(new VideoMode(1280, 720), "My SFML Window");
             clock = new Clock();
             camera = new Camera(640, 360);
 
-            window.Closed += (sender, e) => window.Close();
+           
+
+            
             window.Resized += OnWindowResized;
             window.LostFocus += OnLostFocus;
             window.GainedFocus += OnGainedFocus;
@@ -53,6 +62,7 @@ namespace src
 
         private void OnWindowResized(object? sender, SizeEventArgs e)
         {
+            
             GameLoop.ResizeCamera(camera);
             Camera.ViewHeight = camera.GetHeight();
             Camera.ViewWidth = camera.GetWidth();
@@ -75,6 +85,8 @@ namespace src
 
         public void Run()
         {
+           
+
             (player, map) = GameLoop.InitGameLoop();
             currentState = State.MainMenu;
 
@@ -84,6 +96,8 @@ namespace src
                 window.DispatchEvents();
                 window.Clear();
                 Timer += deltaTime;
+
+               
 
                 switch (currentState)
                 {
@@ -97,11 +111,29 @@ namespace src
                         currentState = MainMenu.RunMainMenu(window, deltaTime);
                         break;
 
+                    case State.Auth:
+                        if (firstEntryToAuth)
+                        {
+                            AuthScreen.InitAuthScreen();
+                            firstEntryToAuth = false;
+                            firstEntryToMainMenu = true;
+                            firstEntryToGameLoop = true;
+                            
+                           
+                        }
+                        currentState = AuthScreen.RunAuthScreen(window, deltaTime);
+                        if (currentState != State.Auth)
+                        {
+                            firstEntryToAuth = true;
+                        }
+                        break;
+
                     case State.Playing:
                         if (firstEntryToGameLoop)
                         {
                             firstEntryToGameLoop = false;
                             firstEntryToMainMenu = true;
+                            firstEntryToAuth = true;
                             GameLoop.ResizeCamera(camera);
                         }
                         currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers, currentState);
@@ -112,15 +144,17 @@ namespace src
                         {
                             firstEntryToGameLoop = false;
                             firstEntryToMainMenu = true;
+                            firstEntryToAuth = true;
                             GameLoop.ResizeCamera(camera);
 
+
                             udpClient = new Client(ServerIp, Port);
-                            bool connected = udpClient.StartMatchmaking(player, timeoutSeconds: 5); // Timeout de 5 secondes
+                            bool connected = udpClient.StartMatchmaking(player, timeoutSeconds: 5);
 
                             if (!connected)
                             {
                                 Console.WriteLine("Connection to server timed out.");
-                                currentState = State.MainMenu;  // Retour au menu principal
+                                currentState = State.MainMenu;
                                 break;
                             }
 
@@ -129,10 +163,9 @@ namespace src
                             clientThread.Start();
                         }
 
-                        otherPlayers = udpClient?.GetOtherPlayers() ?? new Dictionary<int, Player>();
-                        currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers, currentState);
+                            otherPlayers = udpClient?.GetOtherPlayers() ?? new Dictionary<int, Player>();
+                            currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers, currentState);
                         break;
-
 
                     case State.Paused:
                         currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers, currentState);

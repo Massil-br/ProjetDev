@@ -104,66 +104,7 @@ namespace src
             return state;
         }
 
-        // public static State RunMainMenu(RenderWindow window, float deltaTime)
-        // {   
-        //     //View uiView = new View(new FloatRect(0, 0, window.Size.X, window.Size.Y));
-        //     uiView.Size = new Vector2f(window.Size.X, window.Size.Y);
-        //     uiView.Center = new Vector2f(window.Size.X / 2f, window.Size.Y / 2f);
-
-        //     window.SetView(uiView);
-        //     if (ArrowSelectionTimer > 0)
-        //     {
-        //         ArrowSelectionTimer -= deltaTime;
-        //     }
-
-        //     if (mouseClickTimer > 0){
-        //         mouseClickTimer -= deltaTime;
-        //     }
-        //     if (!MainMenuInitialized)
-        //     {
-        //         InitMainMenu();
-        //     }
-            
-        //     HandleKeyboardInput();
-        //     HandleMouseInput(window);
-
-        //     // Update colors based on selection
-        //     soloText.FillColor = selectedOption == 0 ? Color.Red : Color.White;
-        //     multiplayerText.FillColor = selectedOption == 1 ? Color.Red : Color.White;
-        //     quitText.FillColor = selectedOption == 2 ? Color.Red : Color.White;
-
-        //     // Mettre à jour les positions des textes par rapport au centre de la fenêtre
-        //     Vector2f windowCenter = new Vector2f(window.Size.X / 2f, window.Size.Y / 2f);
-
-        //     titleText.Position = new Vector2f(
-        //         windowCenter.X - titleText.GetGlobalBounds().Width / 2,
-        //         windowCenter.Y + (window.Size.Y * TitlePositionY) - titleText.GetGlobalBounds().Height / 2
-        //     );
-
-        //     soloText.Position = new Vector2f(
-        //         windowCenter.X - soloText.GetGlobalBounds().Width / 2,
-        //         windowCenter.Y + (window.Size.Y * SoloPositionY) - soloText.GetGlobalBounds().Height / 2
-        //     );
-
-        //     multiplayerText.Position = new Vector2f(
-        //         windowCenter.X - multiplayerText.GetGlobalBounds().Width / 2,
-        //         windowCenter.Y + (window.Size.Y * MultiplayerPositionY) - multiplayerText.GetGlobalBounds().Height / 2
-        //     );
-
-        //     quitText.Position = new Vector2f(
-        //         windowCenter.X - quitText.GetGlobalBounds().Width / 2,
-        //         windowCenter.Y + (window.Size.Y * QuitPositionY) - quitText.GetGlobalBounds().Height / 2
-        //     );
-
-        //     // Draw menu
-        //     window.Draw(titleText);
-        //     window.Draw(soloText);
-        //     window.Draw(multiplayerText);
-        //     window.Draw(quitText);
-
-        //     return state;
-        // }
-
+        
 
         private static void HandleKeyboardInput()
         {
@@ -236,9 +177,6 @@ namespace src
                 state = State.MainMenu;
                 break;
         }
-
-        // Une fois l'état mis à jour, assure-toi qu'il n'y a pas de "retour inattendu"
-        // Si l'état est déjà changé, tu peux également quitter la méthode pour éviter de continuer la logique de menu.
     }
 
 

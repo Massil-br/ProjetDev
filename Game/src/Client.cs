@@ -15,6 +15,7 @@ public class Client
     private Dictionary<int, Player> otherPlayers = new();
     private CancellationTokenSource cancellationTokenSource = new();
 
+    
     public Client(string serverIp, int port)
     {
         udpClient = new UdpClient();
@@ -24,7 +25,7 @@ public class Client
     public bool StartMatchmaking(Player player, int timeoutSeconds)
     {
         try
-        {
+        {   
             byte[] requestData = Encoding.UTF8.GetBytes("MATCHMAKING_REQUEST");
             udpClient.Send(requestData, requestData.Length, serverEndPoint);
 
@@ -48,6 +49,8 @@ public class Client
                     Console.WriteLine($"Assigned to Room ID: {roomId}");
                     return true;
                 }
+
+
             }
         }
         catch (Exception ex)
@@ -70,10 +73,10 @@ public class Client
 
     private void SendPlayerInfo(Player player)
     {
-        string message = $"{playerId}:{player.GetPosition().X}:{player.GetPosition().Y}:" +
-                         $"{player.GetAnimationState()}:{player.IsFacingRight()}:" +
-                         $"{player.GetVerticalSpeed()}:{player.GetPlayerMovement().X}:{player.GetPlayerMovement().Y}";
-        byte[] sendData = Encoding.UTF8.GetBytes(message);
+        PlayerServerInfo Pinfo = new(player);
+        PlayerMessage message = new(Pinfo, playerId);
+        Console.WriteLine($"Envoi des données du joueur: {message.Message}");
+        byte[] sendData = Encoding.UTF8.GetBytes(message.Message);
         udpClient.Send(sendData, sendData.Length, serverEndPoint);
     }
 
@@ -98,32 +101,78 @@ public class Client
 
     private void ProcessServerData(string data, Player player)
     {
-        string[] playersData = data.Split('|');
-        foreach (string p in playersData)
+        if (string.IsNullOrEmpty(data))
         {
-            string[] parts = p.Split(':');
-            if (parts.Length == 8 && int.TryParse(parts[0], out int id))
+            Console.WriteLine("Données reçues vides");
+            return;
+        }
+
+        Console.WriteLine($"Données brutes reçues: {data}");
+
+        string[] parts = data.Split('|');
+        if (parts.Length == 0) return;
+
+        // Traitement de l'état de la salle
+        string roomState = parts[0];
+        Console.WriteLine($"État de la salle: {roomState}");
+
+        // Si on est en attente, on ne traite pas les positions des joueurs
+        if (roomState == "STATE=WAITING")
+        {
+            Console.WriteLine("En attente d'autres joueurs...");
+            return;
+        }
+
+        // Traitement des données des joueurs
+        for (int i = 1; i < parts.Length; i++)
+        {
+            string p = parts[i];
+            if (string.IsNullOrEmpty(p)) continue;
+            
+            Console.WriteLine($"Traitement des données du joueur: {p}");
+            
+            string[] playerParts = p.Split(':');
+            if (playerParts.Length == 8 && int.TryParse(playerParts[0], out int id))
             {
-                float x = float.Parse(parts[1]);
-                float y = float.Parse(parts[2]);
-                Animation anim = Enum.Parse<Animation>(parts[3]);
-                bool facing = bool.Parse(parts[4]);
-                float vertical = float.Parse(parts[5]);
-                float moveX = float.Parse(parts[6]);
-                float moveY = float.Parse(parts[7]);
-
-                if (id != playerId)
+                try
                 {
-                    if (!otherPlayers.ContainsKey(id))
-                        otherPlayers[id] = new Player("OtherPlayer", 100, 10);
+                    float x = float.Parse(playerParts[1]);
+                    float y = float.Parse(playerParts[2]);
+                    Animation anim = Enum.Parse<Animation>(playerParts[3]);
+                    bool facing = bool.Parse(playerParts[4]);
+                    float vertical = float.Parse(playerParts[5]);
+                    float moveX = float.Parse(playerParts[6]);
+                    float moveY = float.Parse(playerParts[7]);
 
-                    Player op = otherPlayers[id];
-                    op.UpdatePosition(new Vector2f(x, y));
-                    op.SetFacing(facing);
-                    op.SetAnimationState(anim);
-                    op.SetVerticalSpeed(vertical);
-                    op.SetPlayerMovement(new Vector2f(moveX, moveY));
+                    Console.WriteLine($"Données parsées - ID: {id}, Position: ({x}, {y}), Animation: {anim}");
+
+                    if (id != playerId)
+                    {
+                        if (!otherPlayers.ContainsKey(id))
+                        {
+                            Console.WriteLine($"Nouveau joueur détecté: {id}");
+                            otherPlayers[id] = new Player("OtherPlayer", 100, 10);
+                        }
+
+                        Player op = otherPlayers[id];
+                        op.UpdatePosition(new Vector2f(x, y));
+                        op.SetFacing(facing);
+                        op.SetAnimationState(anim);
+                        op.SetVerticalSpeed(vertical);
+                        op.SetPlayerMovement(new Vector2f(moveX, moveY));
+                        Console.WriteLine($"Joueur {id} mis à jour - Position: ({x}, {y})");
+                    }
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur lors du traitement des données du joueur {id}: {ex.Message}");
+                    Console.WriteLine($"Données problématiques: {p}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Format de données invalide: {p}");
+                Console.WriteLine($"Nombre de parties: {playerParts.Length}");
             }
         }
     }
