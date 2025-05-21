@@ -52,9 +52,7 @@ namespace src
             clock = new Clock();
             camera = new Camera(640, 360);
 
-           
-
-            
+            window.Closed += (sender, e) => window.Close();
             window.Resized += OnWindowResized;
             window.LostFocus += OnLostFocus;
             window.GainedFocus += OnGainedFocus;
