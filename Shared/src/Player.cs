@@ -626,6 +626,12 @@ namespace Shared
         {
             playerPosition = newPosition;
         }
+
+        public FloatRect GetHitbox(){
+            return hitbox;
+        }
+
+
     }
 
     public enum Animation{
