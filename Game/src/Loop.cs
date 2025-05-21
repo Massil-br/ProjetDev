@@ -36,7 +36,7 @@ namespace src
         private Player? player;
         private bool firstEntryToGameLoop = true;
         private bool firstEntryToMainMenu = true;
-        private bool firstEntryToAuth = true;
+
         private Map? map;
         Thread? clientThread;
 
@@ -109,29 +109,14 @@ namespace src
                         currentState = MainMenu.RunMainMenu(window, deltaTime);
                         break;
 
-                    case State.Auth:
-                        if (firstEntryToAuth)
-                        {
-                            AuthScreen.InitAuthScreen();
-                            firstEntryToAuth = false;
-                            firstEntryToMainMenu = true;
-                            firstEntryToGameLoop = true;
-                            
-                           
-                        }
-                        currentState = AuthScreen.RunAuthScreen(window, deltaTime);
-                        if (currentState != State.Auth)
-                        {
-                            firstEntryToAuth = true;
-                        }
-                        break;
+                    
 
                     case State.Playing:
                         if (firstEntryToGameLoop)
                         {
                             firstEntryToGameLoop = false;
                             firstEntryToMainMenu = true;
-                            firstEntryToAuth = true;
+                            
                             GameLoop.ResizeCamera(camera);
                         }
                         currentState = GameLoop.RunGameLoop(player, map, deltaTime, window, camera, otherPlayers, currentState);
@@ -142,7 +127,7 @@ namespace src
                         {
                             firstEntryToGameLoop = false;
                             firstEntryToMainMenu = true;
-                            firstEntryToAuth = true;
+                           
                             GameLoop.ResizeCamera(camera);
 
 
